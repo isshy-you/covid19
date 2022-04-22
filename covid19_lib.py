@@ -20,4 +20,5 @@ class url_read:
     url_read_csv('https://covid19.mhlw.go.jp/public/opendata/newly_confirmed_cases_detail_weekly.csv')
     url_read_csv('https://www3.nhk.or.jp/n-data/opendata/coronavirus/nhk_news_covid19_prefectures_daily_data.csv')
 
-url_read()
+if __name__ == "__main__":
+    url_read()
