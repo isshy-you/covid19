@@ -62,12 +62,13 @@ if __name__ == "__main__":
     os.makedirs('result', exist_ok=True)
 
     # convert cumulative to daily
-    buf2=df_death.at[0,'ALL']
-    for ii in range(1,len(df_death),1):
-        buf1=df_death.at[ii,'ALL']
-        df_death.at[ii,'ALL']=buf1-buf2
-        buf2=buf1
-    df_death.at[0,'ALL']=0
+    for pref in range(1,48,1):
+        buf2=df_death.at[0,df_death.columns[pref]]
+        for ii in range(1,len(df_death),1):
+            buf1=df_death.at[ii,df_death.columns[pref]]
+            df_death.at[ii,df_death.columns[pref]]=buf1-buf2
+            buf2=buf1
+        df_death.at[0,df_death.columns[pref]]=0
 
     sxmin='2021-07-01'
     xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
@@ -104,6 +105,33 @@ if __name__ == "__main__":
     plt.cla()
     plt.clf()
     plt.close()
+
+    for pref in range(2,48,1):
+        fig = plt.figure(1,figsize=(6,6))
+        axes = fig.add_subplot(111)
+        # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
+        plt.title(df_death.columns[pref]+':COVID-19 from MHLW Open Data (7days Moving Average)')
+        plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,pref].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
+        plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,4+(pref-2)*3].rolling(window=7, min_periods=1).mean(),label="inpatient")
+        plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,pref].rolling(window=7, min_periods=1).mean(),label="severe_cases_daily")
+        plt.plot(df_death.iloc[:,0],df_death.iloc[:,pref].rolling(window=7, min_periods=1).mean(),label="deaths_daily")
+        plt.xlim(xmin,xmax)
+        plt.yscale("log")
+        plt.legend()
+        plt.tick_params(axis='x', rotation=90)
+        axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
+        axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+        # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
+        # plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+        plt.grid()
+        # plt.gcf().autofmt_xdate()
+        plt.tight_layout()
+        # plt.show()
+        fname='result/covid19_MHLW_'+'{:02d}'.format(pref)+df_death.columns[pref]
+        fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
+        plt.cla()
+        plt.clf()
+        plt.close()
 
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     # 10k newly graph by Prefectures
