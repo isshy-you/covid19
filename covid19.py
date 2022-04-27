@@ -62,7 +62,7 @@ if __name__ == "__main__":
     os.makedirs('result', exist_ok=True)
 
     # convert cumulative to daily
-    for pref in range(1,48,1):
+    for pref in range(1,49,1):
         buf2=df_death.at[0,df_death.columns[pref]]
         for ii in range(1,len(df_death),1):
             buf1=df_death.at[ii,df_death.columns[pref]]
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     plt.clf()
     plt.close()
 
-    for pref in range(2,48,1):
+    for pref in range(2,49,1):
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)
         # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         # plt.gcf().autofmt_xdate()
         plt.tight_layout()
         # plt.show()
-        fname='result/covid19_MHLW_'+'{:02d}'.format(pref)+df_death.columns[pref]
+        fname='result/covid19_MHLW_'+'{:02d}'.format(pref-1)+df_death.columns[pref]
         fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
         plt.cla()
         plt.clf()
