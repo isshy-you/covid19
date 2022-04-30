@@ -50,13 +50,17 @@ if __name__ == "__main__":
     covid19_lib.url_read()    
 
     print('reading covid19 data from database/*.csv')
-    df_death = read_csv("database/deaths_cumulative_daily.csv")
     df_newly = read_csv("database/newly_confirmed_cases_daily.csv")
-    df_pcrcase = read_csv("database/pcr_case_daily.csv")
-    df_pcrtest = read_csv("database/pcr_tested_daily.csv")
     df_inpatient = read_csv("database/requiring_inpatient_care_etc_daily.csv")
     df_severe = read_csv("database/severe_cases_daily.csv")
+    df_death = read_csv("database/deaths_cumulative_daily.csv")
+    df_pcrcase = read_csv("database/pcr_case_daily.csv")
+    df_pcrtest = read_csv("database/pcr_tested_daily.csv")
     df_newly_100k = read_csv("database/newly_confirmed_cases_per_100_thousand_population_daily.csv")
+
+    # for (i,j) in enumerate(df_death.columns):
+    #     print(i,j)
+    # quit()
 
     print('making covid19 graph : result/covid19_MHLW.png')
     os.makedirs('result', exist_ok=True)
@@ -73,6 +77,7 @@ if __name__ == "__main__":
     sxmin='2021-07-01'
     xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
     xmax = np.max(df_newly['Date'])
+    print('from:',xmin,' to:',xmax)
     ymin = 1
     ymax = 1000000
     # ymax = np.max(df_pcrtest.iloc[:,1],df_newly.iloc[:,1],df_inpatient.iloc[:,1],df_severe.iloc[:,1],df_death.iloc[:,1])
@@ -106,16 +111,17 @@ if __name__ == "__main__":
     plt.clf()
     plt.close()
 
-    for pref in range(2,49,1):
+    for ii in range(2,len(df_newly.columns),1):
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)
         # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
-        plt.title(df_death.columns[pref]+':COVID-19 from MHLW Open Data (7days Moving Average)')
-        plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,pref].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
-        plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,4+(pref-2)*3].rolling(window=7, min_periods=1).mean(),label="inpatient")
-        plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,pref].rolling(window=7, min_periods=1).mean(),label="severe_cases_daily")
-        plt.plot(df_death.iloc[:,0],df_death.iloc[:,pref].rolling(window=7, min_periods=1).mean(),label="deaths_daily")
+        plt.title(df_newly.columns[ii]+':COVID-19 from MHLW Open Data (7days Moving Average)')
+        plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
+        plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,4+(ii-2)*3].rolling(window=7, min_periods=1).mean(),label="inpatient")
+        plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="severe_cases_daily")
+        plt.plot(df_death.iloc[:,0],df_death.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="deaths_daily")
         plt.xlim(xmin,xmax)
+        plt.ylim(1,1000_000)
         plt.yscale("log")
         plt.legend()
         plt.tick_params(axis='x', rotation=90)
@@ -127,7 +133,7 @@ if __name__ == "__main__":
         # plt.gcf().autofmt_xdate()
         plt.tight_layout()
         # plt.show()
-        fname='result/covid19_MHLW_'+'{:02d}'.format(pref-1)+df_death.columns[pref]
+        fname='result/covid19_MHLW_'+'{:02d}'.format(ii-1)+df_death.columns[ii]
         fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
         plt.cla()
         plt.clf()
