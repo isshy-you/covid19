@@ -38,8 +38,9 @@ def MakeGraph(event):
         # print('pos:',pos)
         # text = "{}, {}".format(" ".join(list(map(str,ind["ind"]))), 
         #                        " ".join([names[n] for n in ind["ind"]]))
-        text = "{:0.0f}".format(pos[1])
+        text = "{:08.0f}".format(pos[1])
         annot.set_text(text)
+        axes.text(0.1, 0.1, text, transform=axes.transAxes,bbox=boxdic)
 
     # hoverイベント
     def hover(event):
@@ -52,6 +53,7 @@ def MakeGraph(event):
                 annot.set_visible(True)
                 fig.canvas.draw_idle()
             else:
+                axes.text(0.1, 0.1, '00000000', transform=axes.transAxes,bbox=boxdic)
                 if vis:
                     annot.set_visible(False)
                     fig.canvas.draw_idle()
@@ -68,10 +70,20 @@ def MakeGraph(event):
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)
 
+        # bboxの作成
+        boxdic = {
+            "facecolor" : "lightgreen",
+            "edgecolor" : "darkred",
+            "boxstyle" : "Round",
+            "linewidth" : 2
+        }
+
         # アノテーション生成
-        annot = axes.annotate("", xy=(0,0), xytext=(0,-100),textcoords="offset points", arrowprops=dict(arrowstyle="->"))
+        annot = axes.annotate("", xy=(0,0), xytext=(0,-50),textcoords="offset points", arrowprops=dict(arrowstyle="->"),bbox=boxdic)
         # annot = axes.annotate("", xy=(0,0), xytext=(100,100),arrowprops=dict(arrowstyle="->"))
         annot.set_visible(False)
+        # axes.text(0.5, 0.9, "Axes: (0.5, 0.1)", transform=axes.transAxes)
+
 
         # hoverイベントを追加
         fig.canvas.mpl_connect("motion_notify_event", hover)
