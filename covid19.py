@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+# import tqdm
 import datetime
 import os
 import covid19_lib
@@ -47,7 +48,9 @@ def make_7dma(df,column):
 
 if __name__ == "__main__":
     print('download & coping covid19 open data from internet')
-    covid19_lib.url_read()    
+    ap=covid19_lib.url_download()
+    ap.download_MHLW()
+    # covid19_lib.url_download()    
 
     print('reading covid19 data from database/*.csv')
     df_newly = read_csv("database/newly_confirmed_cases_daily.csv")
@@ -76,7 +79,12 @@ if __name__ == "__main__":
 
     sxmin='2021-07-01'
     xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
-    xmax = np.max(df_newly['Date'])
+    xmax = np.min([ np.max(df_pcrtest.iloc[:,0])
+                    ,np.max(df_newly.iloc[:,0])
+                    ,np.max(df_inpatient.iloc[:,0])
+                    ,np.max(df_severe.iloc[:,0])
+                    ,np.max(df_death.iloc[:,0])
+                    ])
     print('from:',xmin,' to:',xmax)
     ymin = 1
     ymax = 1000000
@@ -88,6 +96,28 @@ if __name__ == "__main__":
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
     # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
+    plt.title('COVID-19 from MHLW Open Data')
+    plt.plot(df_pcrtest.iloc[:,0],df_pcrtest.iloc[:,1],label="pcr_tested_daily")
+    plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,1],label="newly_confirmed_cases_daily")
+    # plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,1],label="inpatient")
+    # plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,1],label="severe_cases_daily")
+    # plt.plot(df_death.iloc[:,0],df_death.iloc[:,1],label="deaths_daily")
+    plt.xlim(xmin,xmax)
+    # plt.yscale("log")
+    plt.legend()
+    plt.tick_params(axis='x', rotation=90)
+    axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
+    axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
+    # plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    plt.grid()
+    # plt.gcf().autofmt_xdate()
+    plt.tight_layout()
+    # plt.show()
+    fig.savefig('result/covid19_MHLW', bbox_inches="tight", pad_inches=0.05)
+    plt.cla()
+    plt.clf()
+
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
     plt.plot(df_pcrtest.iloc[:,0],df_pcrtest.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="pcr_tested_daily")
     plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
@@ -106,15 +136,17 @@ if __name__ == "__main__":
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
     # plt.show()
-    fig.savefig('result/covid19_MHLW', bbox_inches="tight", pad_inches=0.05)
+    fig.savefig('result/covid19_MHLW_7dMA', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
     plt.close()
 
     for ii in range(2,len(df_newly.columns),1):
+    # for ii in tqdm.tqdm(range(2,len(df_newly.columns),1)):
+        # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)
-        # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
+        print('\r','-',df_newly.columns[ii],'           ',end="")
         plt.title(df_newly.columns[ii]+':COVID-19 from MHLW Open Data (7days Moving Average)')
         plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
         plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,4+(ii-2)*3].rolling(window=7, min_periods=1).mean(),label="inpatient")
@@ -137,7 +169,8 @@ if __name__ == "__main__":
         fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
         plt.cla()
         plt.clf()
-        plt.close()
+        plt.close() 
+    print('\r','                   ')
 
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     # 10k newly graph by Prefectures
