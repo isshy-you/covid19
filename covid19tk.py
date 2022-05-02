@@ -59,13 +59,13 @@ def MakeGraph(event):
                     fig.canvas.draw_idle()
 
     for ii in listbox.curselection(): #現在選択されている項目を取得
-        print(str(ii)+'番目を選択中')
+        # print(str(ii)+'番目を選択中')
         load=covid19_lib.csv_load()
         df=load.load_MHLW(ii)
         sxmin='2021-07-01'
         xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
         xmax = np.min([np.max(df.iloc[:,0])])
-        print('from:',xmin,' to:',xmax)
+        # print('from:',xmin,' to:',xmax)
 
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)

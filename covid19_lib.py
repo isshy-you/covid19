@@ -39,21 +39,21 @@ class url_download():
 
     def download_MHLW(self):
         for url in self.MHLW_URLs:
-            print('download from:'+url)
+            print(' - download from:'+url)
             self.url_download_csv(url)
 
 class csv_load():
     def __init__(self,):
         self.MHLW_names = [  'pcr_tested'
-                            ,'newly_confirmed_cases'
                             ,'inpatient'
+                            ,'newly_confirmed_cases'
                             ,'severe_cases'
                             ,'deaths'
                             ,'pcr_case'
                             ,'newly_confirmed_cases_per_100k']
         self.MHLW_fnames = ['database/pcr_tested_daily.csv'
-                            ,'database/newly_confirmed_cases_daily.csv'
                             ,'database/requiring_inpatient_care_etc_daily.csv'
+                            ,'database/newly_confirmed_cases_daily.csv'
                             ,'database/severe_cases_daily.csv'
                             ,'database/deaths_cumulative_daily.csv'
                             ,'database/pcr_case_daily.csv'
@@ -69,20 +69,42 @@ class csv_load():
             df.at[ii,date_name]=datetime.datetime.strptime(df.at[ii,date_name], "%Y/%m/%d")
         return(df)
 
+    def make_mag(self,df):
+        df_mag=df
+        for ii in range(0,len(df)):
+            for jj,pref in enumerate(df.columns):
+                if ii != 0 and jj != 0 and df_mag.at[ii-1,pref]!=0:
+                    df_mag.at[ii,pref]=df.at[ii,pref]/df_mag.at[ii-1,pref]
+                else:
+                    df_mag.at[ii,pref]=np.nan
+        return(df_mag)
+
     def load_MHLW_all(self):
+        ### df_list[] <= (MHLW_fnames) (MHLW_names)
         df_list=[]
+        df_mag_list=[]
         for ii,fname in enumerate(self.MHLW_fnames):
-            print('load from:'+fname)
-            df_list.append(self.read_csv(fname))
-            df_list[ii].name = self.MHLW_names[ii]
-        return(df_list)
+            df,df_mag=self.load_MHLW(ii)
+            df_list.append(df)
+            df_mag_list.append(df_mag)
+            # print(' - load from:'+fname)
+            # df=self.read_csv(fname)
+            # df_mag=self.make_mag(df)
+            # df_list.append(df)
+            # df_mag_list.append(df_mag)
+            # df_list[ii].name = self.MHLW_names[ii]
+            # df_mag_list[ii].name = self.MHLW_names[ii]
+        return(df_list,df_mag_list)
 
     def load_MHLW(self,no):
         fname =self.MHLW_fnames[no]
-        print('load from:'+fname)
+        print(' - load from:'+fname)
         df=self.read_csv(fname)
+        df_mag=df
+        # df_mag=self.make_mag(df)
         df.name = self.MHLW_names[no]
-        return(df)
+        df_mag.name = self.MHLW_names[no]
+        return(df,df_mag)
 
 if __name__ == "__main__":
     download=url_download()

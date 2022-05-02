@@ -8,6 +8,7 @@ import matplotlib.dates as mdates
 import datetime
 import os
 import covid19_lib
+import math
 
 def read_csv(fname):
     df = pd.read_csv(fname)
@@ -49,59 +50,54 @@ def make_7dma(df,column):
 if __name__ == "__main__":
     print('download & coping covid19 open data from internet')
     ap=covid19_lib.url_download()
-    ap.download_MHLW()
-    # covid19_lib.url_download()    
+    # ap.download_MHLW()
+    # # covid19_lib.url_download()    
 
     print('reading covid19 data from database/*.csv')
-    df_newly = read_csv("database/newly_confirmed_cases_daily.csv")
-    df_inpatient = read_csv("database/requiring_inpatient_care_etc_daily.csv")
-    df_severe = read_csv("database/severe_cases_daily.csv")
-    df_death = read_csv("database/deaths_cumulative_daily.csv")
-    df_pcrcase = read_csv("database/pcr_case_daily.csv")
-    df_pcrtest = read_csv("database/pcr_tested_daily.csv")
-    df_newly_100k = read_csv("database/newly_confirmed_cases_per_100_thousand_population_daily.csv")
-
-    # for (i,j) in enumerate(df_death.columns):
-    #     print(i,j)
-    # quit()
+    load=covid19_lib.csv_load()
+    df_list,df_mag_list=load.load_MHLW_all()
+    
+    pcrtest_no = load.MHLW_names.index('pcr_tested') #0
+    inpatient_no = load.MHLW_names.index('inpatient') #1
+    newly_no = load.MHLW_names.index('newly_confirmed_cases') #2
+    severe_no = load.MHLW_names.index('severe_cases') #3
+    death_no = load.MHLW_names.index('deaths') #4
+    pcrcase_no = load.MHLW_names.index('pcr_case') #5
+    newly_100k_no = load.MHLW_names.index('newly_confirmed_cases_per_100k') #6
 
     print('making covid19 graph : result/covid19_MHLW.png')
     os.makedirs('result', exist_ok=True)
 
-    # convert cumulative to daily
-    for pref in range(1,49,1):
-        buf2=df_death.at[0,df_death.columns[pref]]
-        for ii in range(1,len(df_death),1):
-            buf1=df_death.at[ii,df_death.columns[pref]]
-            df_death.at[ii,df_death.columns[pref]]=buf1-buf2
+    # death : convert cumulative to daily
+    for col in range(1,len(df_list[newly_no].columns),1):
+        buf2=df_list[death_no].at[0,df_list[death_no].columns[col]]
+        for ii in range(1,len(df_list[death_no]),1):
+            buf1=df_list[death_no].at[ii,df_list[death_no].columns[col]]
+            df_list[death_no].at[ii,df_list[death_no].columns[col]]=buf1-buf2
             buf2=buf1
-        df_death.at[0,df_death.columns[pref]]=0
+        df_list[death_no].at[0,df_list[death_no].columns[col]]=0
 
     sxmin='2021-07-01'
     xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
-    xmax = np.min([ np.max(df_pcrtest.iloc[:,0])
-                    ,np.max(df_newly.iloc[:,0])
-                    ,np.max(df_inpatient.iloc[:,0])
-                    ,np.max(df_severe.iloc[:,0])
-                    ,np.max(df_death.iloc[:,0])
-                    ])
+        
+    xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
+    print(xmax)
+    for ii,dname in enumerate(load.MHLW_fnames):
+        xtmp = np.max([df_list[ii].iloc[:,0]])
+        xmax = np.min([xtmp,xmax])
+
     print('from:',xmin,' to:',xmax)
     ymin = 1
-    ymax = 1000000
+    ymax = 1_000_000
     # ymax = np.max(df_pcrtest.iloc[:,1],df_newly.iloc[:,1],df_inpatient.iloc[:,1],df_severe.iloc[:,1],df_death.iloc[:,1])
-    # ymax1 = np.max(df_inpatient.iloc[:,1])
-    # ymax2 = np.max(df_pcrtest.iloc[:,1])
-    # ymax = np.max([int(ymax1),int(ymax2)])
+
     # All Graph
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
     # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
     plt.title('COVID-19 from MHLW Open Data')
-    plt.plot(df_pcrtest.iloc[:,0],df_pcrtest.iloc[:,1],label="pcr_tested_daily")
-    plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,1],label="newly_confirmed_cases_daily")
-    # plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,1],label="inpatient")
-    # plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,1],label="severe_cases_daily")
-    # plt.plot(df_death.iloc[:,0],df_death.iloc[:,1],label="deaths_daily")
+    plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
+    plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_names[newly_no])
     plt.xlim(xmin,xmax)
     # plt.yscale("log")
     plt.legend()
@@ -119,11 +115,8 @@ if __name__ == "__main__":
     plt.clf()
 
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
-    plt.plot(df_pcrtest.iloc[:,0],df_pcrtest.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="pcr_tested_daily")
-    plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
-    plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="inpatient")
-    plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="severe_cases_daily")
-    plt.plot(df_death.iloc[:,0],df_death.iloc[:,1].rolling(window=7, min_periods=1).mean(),label="deaths_daily")
+    for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
+        plt.plot(df_list[ii].iloc[:,0],df_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
     plt.xlim(xmin,xmax)
     plt.yscale("log")
     plt.legend()
@@ -136,22 +129,24 @@ if __name__ == "__main__":
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
     # plt.show()
-    fig.savefig('result/covid19_MHLW_7dMA', bbox_inches="tight", pad_inches=0.05)
+    fig.savefig('result/covid19_MHLW_00All_7dMA', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
     plt.close()
 
-    for ii in range(2,len(df_newly.columns),1):
-    # for ii in tqdm.tqdm(range(2,len(df_newly.columns),1)):
+    print('making covid19 graph for each prefecture')
+    for col in range(2,len(df_list[newly_no].columns),1):
+    # for col in tqdm.tqdm(range(2,len(df_newly.columns),1)):
         # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)
-        print('\r','-',df_newly.columns[ii],'           ',end="")
-        plt.title(df_newly.columns[ii]+':COVID-19 from MHLW Open Data (7days Moving Average)')
-        plt.plot(df_newly.iloc[:,0],df_newly.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="newly_confirmed_cases_daily")
-        plt.plot(df_inpatient.iloc[:,0],df_inpatient.iloc[:,4+(ii-2)*3].rolling(window=7, min_periods=1).mean(),label="inpatient")
-        plt.plot(df_severe.iloc[:,0],df_severe.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="severe_cases_daily")
-        plt.plot(df_death.iloc[:,0],df_death.iloc[:,ii].rolling(window=7, min_periods=1).mean(),label="deaths_daily")
+        # print('\r','-',df_list[newly_no].columns[col],'           ',end="")
+        plt.title(df_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
+        for jj in [newly_no,inpatient_no,severe_no,death_no]:
+            if jj==inpatient_no:
+                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+col*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+            else:
+                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
         plt.xlim(xmin,xmax)
         plt.ylim(1,1000_000)
         plt.yscale("log")
@@ -165,24 +160,25 @@ if __name__ == "__main__":
         # plt.gcf().autofmt_xdate()
         plt.tight_layout()
         # plt.show()
-        fname='result/covid19_MHLW_'+'{:02d}'.format(ii-1)+df_death.columns[ii]
+        fname='result/covid19_MHLW_'+'{:02d}'.format(col-1)+df_list[newly_no].columns[col]
+        print('\r','-',fname,'.png           ',end="")
         fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
         plt.cla()
         plt.clf()
         plt.close() 
-    print('\r','                   ')
+    print('\r','                                     ')
 
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     # 10k newly graph by Prefectures
-    list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
+    pref_list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
     # sxmin='2021-07-01'
     sxmin='2022-01-01'
     xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
-    xmax = np.max(df_newly_100k.iloc[:,0])
+    xmax = np.max(df_list[newly_100k_no].iloc[:,0])
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
-    for pref in list:
-        plt.plot(df_newly_100k.iloc[:,0],df_newly_100k[pref].rolling(window=7, min_periods=1).mean(),label=pref)
+    for pref in pref_list:
+        plt.plot(df_list[newly_100k_no].iloc[:,0],df_list[newly_100k_no][pref].rolling(window=7, min_periods=1).mean(),label=pref)
     plt.title("COVID-19 from MHLW Open Data \n newly confirmed per 100k polulation(7daysMA)")
     plt.xlim([xmin,xmax])
     # plt.yscale("log")
@@ -200,7 +196,7 @@ if __name__ == "__main__":
     f = open('result/result.txt', 'w', encoding='UTF-8')
     f.write('厚生労働省オープンデータより週平均\n')
     print('-----------------tweet text----------------------------')
-    value,p_value,date=make_7dma(df_pcrtest,1)
+    value,p_value,date=make_7dma(df_list[pcrtest_no],1)
     print('厚生労働省データより週平均('+date+')')
     print('()内前週比')
     print_line('PCR検査数','',value,p_value)
@@ -208,7 +204,7 @@ if __name__ == "__main__":
     pcrtest=value
     p_pcrtest=p_value
     d_pcrtest=date
-    value,p_value,date=make_7dma(df_newly,1)
+    value,p_value,date=make_7dma(df_list[newly_no],1)
     print_line('新規陽性者数','',value,p_value)
     fwrite_line(f,'新規陽性者数　　　','',value,p_value,date)
     newly=value
@@ -217,13 +213,13 @@ if __name__ == "__main__":
     if d_pcrtest==d_newly:
         print_line1('PCR検査陽性率','%',newly/pcrtest*100,p_newly/p_pcrtest*100)
         fwrite_line1(f,'ＰＣＲ検査陽性率　','%',newly/pcrtest*100,p_newly/p_pcrtest*100,date)
-    value,p_value,date=make_7dma(df_inpatient,1)
+    value,p_value,date=make_7dma(df_list[inpatient_no],1)
     print_line('入院治療を要する者','',value,p_value)
     fwrite_line(f,'入院治療を要する者','',value,p_value,date)
-    value,p_value,date=make_7dma(df_severe   ,1)
+    value,p_value,date=make_7dma(df_list[severe_no]   ,1)
     print_line('重症者数','',value,p_value)
     fwrite_line(f,'重症者数　　　　　','',value,p_value,date)
-    value,p_value,date=make_7dma(df_death    ,1)
+    value,p_value,date=make_7dma(df_list[death_no]    ,1)
     print_line('死亡者数','',value,p_value)
     fwrite_line(f,'死亡者数　　　　　','',value,p_value,date)
     print('#COVID19 #新型コロナ')
