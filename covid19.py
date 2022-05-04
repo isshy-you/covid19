@@ -50,7 +50,7 @@ def make_7dma(df,column):
 if __name__ == "__main__":
     print('download & coping covid19 open data from internet')
     ap=covid19_lib.url_download()
-    # ap.download_MHLW()
+    ap.download_MHLW()
     # # covid19_lib.url_download()    
 
     print('reading covid19 data from database/*.csv')
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     plt.close()
 
     print('making covid19 graph for each prefecture')
-    for col in range(2,len(df_list[newly_no].columns),1):
+    for col in range(1,len(df_list[newly_no].columns),1):
     # for col in tqdm.tqdm(range(2,len(df_newly.columns),1)):
         # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
         fig = plt.figure(1,figsize=(6,6))
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         plt.title(df_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
         for jj in [newly_no,inpatient_no,severe_no,death_no]:
             if jj==inpatient_no:
-                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+col*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
             else:
                 plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
         plt.xlim(xmin,xmax)
