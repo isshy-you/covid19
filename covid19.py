@@ -65,7 +65,6 @@ if __name__ == "__main__":
     pcrcase_no = load.MHLW_names.index('pcr_case') #5
     newly_100k_no = load.MHLW_names.index('newly_confirmed_cases_per_100k') #6
 
-    print('making covid19 graph : result/covid19_MHLW.png')
     os.makedirs('result', exist_ok=True)
 
     # death : convert cumulative to daily
@@ -77,27 +76,29 @@ if __name__ == "__main__":
             buf2=buf1
         df_list[death_no].at[0,df_list[death_no].columns[col]]=0
 
-    sxmin='2021-07-01'
-    xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
-        
-    xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
-    print(xmax)
-    for ii,dname in enumerate(load.MHLW_fnames):
-        xtmp = np.max([df_list[ii].iloc[:,0]])
-        xmax = np.min([xtmp,xmax])
 
-    print('from:',xmin,' to:',xmax)
+    #calculate and set xmin,xmax,ymin,ymax
+    xmin = datetime.datetime.strptime('2021-07-01', '%Y-%m-%d')
+    # xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
+    # for ii,dname in enumerate(load.MHLW_fnames):
+    #     xtmp = np.max([df_list[ii].iloc[:,0]])
+    #     xmax = np.min([xtmp,xmax])
+    # print('from:',xmin,' to:',xmax)
     ymin = 1
     ymax = 1_000_000
-    # ymax = np.max(df_pcrtest.iloc[:,1],df_newly.iloc[:,1],df_inpatient.iloc[:,1],df_severe.iloc[:,1],df_death.iloc[:,1])
 
     # All Graph
+    print('making covid19 graph : result/covid19_MHLW.png')
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
     # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
     plt.title('COVID-19 from MHLW Open Data')
     plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
     plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_names[newly_no])
+    xmax1 = np.max(df_list[pcrtest_no].iloc[:,0])
+    xmax2 = np.max(df_list[newly_no].iloc[:,0])
+    xmax = min([xmax1,xmax2])
+    print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
     # plt.yscale("log")
     plt.legend()
@@ -114,9 +115,14 @@ if __name__ == "__main__":
     plt.cla()
     plt.clf()
 
+    print('making covid19 graph : result/covid19_MHLW_00All_7dMA')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
+    xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
         plt.plot(df_list[ii].iloc[:,0],df_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
+        xtmp = np.max([df_list[ii].iloc[:,0]])
+        xmax = np.min([xtmp,xmax])
+    print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
     plt.yscale("log")
     plt.legend()
@@ -171,9 +177,7 @@ if __name__ == "__main__":
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     # 10k newly graph by Prefectures
     pref_list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
-    # sxmin='2021-07-01'
-    sxmin='2022-01-01'
-    xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
+    xmin = datetime.datetime.strptime('2022-01-01', '%Y-%m-%d')
     xmax = np.max(df_list[newly_100k_no].iloc[:,0])
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
