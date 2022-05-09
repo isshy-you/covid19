@@ -66,17 +66,21 @@ class csv_load():
         df = pd.read_csv(fname)
         date_name=df.columns[0]
         for ii in range(0,len(df),1):
-            df.at[ii,date_name]=datetime.datetime.strptime(df.at[ii,date_name], "%Y/%m/%d")
+            if type(df.at[ii,date_name])==str:
+                df.at[ii,date_name]=datetime.datetime.strptime(df.at[ii,date_name], "%Y/%m/%d")
+            else:
+                df.at[ii,date_name]=df.at[ii-1,date_name]
         return(df)
 
     def make_mag(self,df):
-        df_mag=df
-        for ii in range(0,len(df)):
-            for jj,pref in enumerate(df.columns):
-                if ii != 0 and jj != 0 and df_mag.at[ii-1,pref]!=0:
-                    df_mag.at[ii,pref]=df.at[ii,pref]/df_mag.at[ii-1,pref]
+        df_mag=df.copy()
+        for ii in range(0,len(df_mag)):
+            for jj,pref in enumerate(df_mag.columns):
+                if ii >= 1 and jj != 0 and df.at[ii-1,pref]!=0:
+                    df_mag.at[ii,pref]=df.at[ii,pref]/df.at[ii-1,pref]
                 else:
-                    df_mag.at[ii,pref]=np.nan
+                    if jj!=0:
+                        df_mag.at[ii,pref]=np.nan
         return(df_mag)
 
     def load_MHLW_all(self):
@@ -87,21 +91,13 @@ class csv_load():
             df,df_mag=self.load_MHLW(ii)
             df_list.append(df)
             df_mag_list.append(df_mag)
-            # print(' - load from:'+fname)
-            # df=self.read_csv(fname)
-            # df_mag=self.make_mag(df)
-            # df_list.append(df)
-            # df_mag_list.append(df_mag)
-            # df_list[ii].name = self.MHLW_names[ii]
-            # df_mag_list[ii].name = self.MHLW_names[ii]
         return(df_list,df_mag_list)
 
     def load_MHLW(self,no):
         fname =self.MHLW_fnames[no]
         print(' - load from:'+fname)
         df=self.read_csv(fname)
-        df_mag=df
-        # df_mag=self.make_mag(df)
+        df_mag=self.make_mag(df)
         df.name = self.MHLW_names[no]
         df_mag.name = self.MHLW_names[no]
         return(df,df_mag)

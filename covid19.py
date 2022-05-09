@@ -87,16 +87,15 @@ if __name__ == "__main__":
     ymin = 1
     ymax = 1_000_000
 
-    # All Graph
+    # pcrtest/newly_confirmed graph
     print('making covid19 graph : result/covid19_MHLW.png')
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
-    # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
     plt.title('COVID-19 from MHLW Open Data')
     plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
     plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_names[newly_no])
-    xmax1 = np.max(df_list[pcrtest_no].iloc[:,0])
-    xmax2 = np.max(df_list[newly_no].iloc[:,0])
+    xmax1 = max(df_list[pcrtest_no].iloc[:,0])
+    xmax2 = max(df_list[newly_no].iloc[:,0])
     xmax = min([xmax1,xmax2])
     print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
@@ -115,7 +114,8 @@ if __name__ == "__main__":
     plt.cla()
     plt.clf()
 
-    print('making covid19 graph : result/covid19_MHLW_00All_7dMA')
+    # All Graph
+    print('making covid19 graph : result/covid19_MHLW_All_7dMA')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
@@ -135,15 +135,41 @@ if __name__ == "__main__":
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
     # plt.show()
-    fig.savefig('result/covid19_MHLW_00All_7dMA', bbox_inches="tight", pad_inches=0.05)
+    fig.savefig('result/covid19_MHLW_All_7dMA', bbox_inches="tight", pad_inches=0.05)
+    plt.cla()
+    plt.clf()
+    # plt.close()
+
+    print('making covid19 magnitude graph : result/covid19_MHLW_All_7dMA_mag')
+    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
+    xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
+    for ii in [newly_no,inpatient_no,severe_no,death_no]:
+    # for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
+        plt.plot(df_mag_list[ii].iloc[:,0],df_mag_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
+        xtmp = np.max([df_mag_list[ii].iloc[:,0]])
+        xmax = np.min([xtmp,xmax])
+    print('from:',xmin,' to:',xmax)
+    plt.xlim(xmin,xmax)
+    plt.yscale("linear")
+    plt.legend()
+    plt.tick_params(axis='x', rotation=90)
+    axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
+    axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
+    # plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    plt.grid()
+    # plt.gcf().autofmt_xdate()
+    plt.tight_layout()
+    # plt.show()
+    fig.savefig('result/covid19_MHLW_All_7dMA_mag', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
     plt.close()
 
+    # prefecture graph
     print('making covid19 graph for each prefecture')
+    xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for col in range(1,len(df_list[newly_no].columns),1):
-    # for col in tqdm.tqdm(range(2,len(df_newly.columns),1)):
-        # plt.plot(df_pcrcase.iloc[:,0],df_pcrcase.iloc[:,9],label="pcr_case_daily")
         fig = plt.figure(1,figsize=(6,6))
         axes = fig.add_subplot(111)
         # print('\r','-',df_list[newly_no].columns[col],'           ',end="")
@@ -153,6 +179,8 @@ if __name__ == "__main__":
                 plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
             else:
                 plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+            xtmp = np.max([df_list[jj].iloc[:,0]])
+            xmax = np.min([xtmp,xmax])
         plt.xlim(xmin,xmax)
         plt.ylim(1,1000_000)
         plt.yscale("log")
@@ -167,15 +195,52 @@ if __name__ == "__main__":
         plt.tight_layout()
         # plt.show()
         fname='result/covid19_MHLW_'+'{:02d}'.format(col-1)+df_list[newly_no].columns[col]
-        print('\r','-',fname,'.png           ',end="")
+        print('\r','-'+fname+'.png           ',end="")
         fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
         plt.cla()
         plt.clf()
         plt.close() 
     print('\r','                                     ')
 
+    # prefecture graph
+    print('making covid19 magnitude graph for each prefecture')
+    # xmin = datetime.datetime.strptime('2022-04-01', '%Y-%m-%d')
+    xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
+    for col in range(1,len(df_mag_list[newly_no].columns),1):
+        fig = plt.figure(1,figsize=(6,6))
+        axes = fig.add_subplot(111)
+        # print('\r','-',df_mag_list[newly_no].columns[col],'           ',end="")
+        plt.title(df_mag_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
+        for jj in [newly_no,inpatient_no,severe_no,death_no]:
+            if jj==inpatient_no:
+                plt.plot(df_mag_list[jj].iloc[:,0],df_mag_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+            else:
+                plt.plot(df_mag_list[jj].iloc[:,0],df_mag_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+            xtmp = np.max([df_mag_list[jj].iloc[:,0]])
+            xmax = np.min([xtmp,xmax])
+        plt.xlim(xmin,xmax)
+        # plt.ylim(0.5,5)
+        plt.yscale("linear")
+        plt.legend()
+        plt.tick_params(axis='x', rotation=90)
+        axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
+        axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+        # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
+        # plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+        plt.grid()
+        # plt.gcf().autofmt_xdate()
+        plt.tight_layout()
+        # plt.show()
+        fname='result/covid19_MHLW_{:02d}'.format(col-1)+df_mag_list[newly_no].columns[col]+'_mag'
+        print('\r','-'+fname+'.png                   ',end="")
+        fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
+        plt.cla()
+        plt.clf()
+        plt.close() 
+    print('\r','                                     ')
+
+    # 10k newly graph by pickuped Prefectures
     print('making covid19 graph : result/covid19_100k_MHLW.png')
-    # 10k newly graph by Prefectures
     pref_list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
     xmin = datetime.datetime.strptime('2022-01-01', '%Y-%m-%d')
     xmax = np.max(df_list[newly_100k_no].iloc[:,0])
