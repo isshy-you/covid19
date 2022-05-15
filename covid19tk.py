@@ -61,7 +61,7 @@ def MakeGraph(event):
     for ii in listbox.curselection(): #現在選択されている項目を取得
         # print(str(ii)+'番目を選択中')
         load=covid19_lib.csv_load()
-        df=load.load_MHLW(ii)
+        df,df_mag=load.load_MHLW(ii)
         sxmin='2021-07-01'
         xmin = datetime.datetime.strptime(sxmin, '%Y-%m-%d')
         xmax = np.min([np.max(df.iloc[:,0])])
@@ -110,7 +110,7 @@ def MakeGraph(event):
         plt.clf()
 
 if __name__ == "__main__":
-
+      
     root = tk.Tk()
     load=covid19_lib.csv_load()
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # for line in load.MHLW_names:
     #     listbox.insert(tk.END, line)
 
-    # Make Graph
+    # Button Test
     tk.Label(root, text="Making COVID-19 Graphs").grid(row=5, sticky="e")
     tk.Button(root, text="Make Graph", command=MakeGraph_button).\
         grid(row=5, column=1, padx=10, pady=10)
@@ -166,4 +166,5 @@ if __name__ == "__main__":
 
 
     root.title("COVID-19 open data analysis")
+    # root.geometry("960x800")
     root.mainloop()

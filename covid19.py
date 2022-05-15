@@ -1,51 +1,102 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pip install pandas
+# pip install numpy
+# pip install matplotlib
+
+import datetime
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 # import tqdm
-import datetime
-import os
 import covid19_lib
-import math
+# import math
 
-def read_csv(fname):
-    df = pd.read_csv(fname)
-    date_name=df.columns[0]
-    for ii in range(0,len(df),1):
-        df.at[ii,date_name]=datetime.datetime.strptime(df.at[ii,date_name], "%Y/%m/%d")
-    return(df)
-
-def print_line(text,unit,value,p_value):
+def print_line(text,mode,unit,value,p_value):
     line1=text+':'+'{:>0,.0f}'.format(value)+unit
-    line2='('+'{:>+0,.0f}'.format(value-p_value)+unit+':'+'{:>0.0f}'.format(value/p_value*100)+'%)'
+    if mode==0:
+        line2='('+'{:>+0,.0f}'.format(value-p_value)+unit+':'+'{:>0.0f}'.format(value/p_value*100)+'%)'
+    else:
+        line2='('+'{:>+0,.1f}'.format(value-p_value)+unit+')'
     print(line1+line2)
 
-def print_line1(text,unit,value,p_value):
-    line1=text+':'+'{:>0,.1f}'.format(value)+unit
-    line2='('+'{:>+0,.1f}'.format(value-p_value)+unit+')'
-    print(line1+line2)
+def fwrite_line_tw(f,mode,text,unit,value,p_value):
+    line1=text+':'+'{:>0,.0f}'.format(value)+unit
+    if mode==0:
+        line2='('+'{:>+0,.0f}'.format(value-p_value)+unit+':'+'{:>0.0f}'.format(value/p_value*100)+'%)'
+    else:
+        line2='('+'{:>+0,.1f}'.format(value-p_value)+unit+')'
+    f.write(line1+line2)
 
-def fwrite_line(f,text,unit,value,p_value,date):
-    value_str = '{:>10,.0f}'.format(value)+unit
-    p_value_str = '{:>+8,.0f}'.format(value-p_value)+unit
-    p_value2_str = '{:>4.0f}'.format(value/p_value*100)
-    text_str = '{:<24}'.format(text)
-    f.write(text_str+'('+date+'):'+value_str+'(前週比'+p_value_str+':'+p_value2_str+'%)'+'\n')
-
-def fwrite_line1(f,text,unit,value,p_value,date):
-    value_str = '{:>9,.1f}'.format(value)+unit
-    p_value_str = '{:>+7,.1f}'.format(value-p_value)+unit
-    p_value2_str = '{:>3.1f}'.format(value/p_value*100)
-    text_str = '{:<24}'.format(text)
-    f.write(text_str+'('+date+'):'+value_str+'(前週比'+p_value_str+')\n')
+def fwrite_line(f,mode,text,unit,value,p_value,date):
+    if mode==0:
+        value_str = '{:>10,.0f}'.format(value)+unit
+        p_value_str = '{:>+8,.0f}'.format(value-p_value)+unit
+        p_value2_str = '{:>4.0f}'.format(value/p_value*100)
+        text_str = '{:<24}'.format(text)
+        f.write(text_str+'('+date+'):'+value_str+'(前週比'+p_value_str+':'+p_value2_str+'%)'+'\n')
+    else:
+        value_str = '{:>9,.1f}'.format(value)+unit
+        p_value_str = '{:>+7,.1f}'.format(value-p_value)+unit
+        text_str = '{:<24}'.format(text)
+        f.write(text_str+'('+date+'):'+value_str+'(前週比'+p_value_str+')\n')
 
 def make_7dma(df,column):
     date = str(df.iloc[:,0].iloc[-1].strftime('%Y/%m/%d'))
     value = df.iloc[:,column].rolling(window=7, min_periods=1).mean().iloc[-1]
     p_value = df.iloc[:,column].rolling(window=7, min_periods=1).mean().iloc[-8]
     return(value,p_value,date)
+
+def make_tweet_text(df_list):
+    f_tw = open('result/twitter.txt', 'w', encoding='UTF-8')
+    f_tw.write('-----------------tweet text----------------------------')
+    f_tw.write('#COVID19 #新型コロナ')
+    value,p_value,date=make_7dma(df_list[pcrtest_no],1)
+    f_tw.write('厚生労働省データより週平均('+date+')')
+    f_tw.write('()内前週比')
+    fwrite_line_tw(f_tw,0,'PCR検査数','',value,p_value)
+    pcrtest=value
+    p_pcrtest=p_value
+    d_pcrtest=date
+    value,p_value,date=make_7dma(df_list[newly_no],1)
+    fwrite_line_tw(f_tw,0,'新規陽性者数','',value,p_value)
+    newly=value
+    p_newly=p_value
+    d_newly=date
+    if d_pcrtest==d_newly:
+        fwrite_line_tw(f_tw,1,'PCR検査陽性率','%',newly/pcrtest*100,p_newly/p_pcrtest*100)
+    value,p_value,date=make_7dma(df_list[inpatient_no],1)
+    fwrite_line_tw(f_tw,0,'入院治療を要する者','',value,p_value)
+    value,p_value,date=make_7dma(df_list[severe_no]   ,1)
+    fwrite_line_tw(f_tw,0,'重症者数','',value,p_value)
+    value,p_value,date=make_7dma(df_list[death_no]    ,1)
+    fwrite_line_tw(f_tw,0,'死亡者数','',value,p_value)
+    f_tw.close()
+
+def make_result_text(df_list):
+    f = open('result/result.txt', 'w', encoding='UTF-8')
+    f.write('厚生労働省オープンデータより週平均\n')
+    value,p_value,date=make_7dma(df_list[pcrtest_no],1)
+    fwrite_line(f,0,'ＰＣＲ検査数　　　','',value,p_value,date)
+    pcrtest=value
+    p_pcrtest=p_value
+    d_pcrtest=date
+    value,p_value,date=make_7dma(df_list[newly_no],1)
+    fwrite_line(f,0,'新規陽性者数　　　','',value,p_value,date)
+    newly=value
+    p_newly=p_value
+    d_newly=date
+    if d_pcrtest==d_newly:
+        fwrite_line(f,1,'ＰＣＲ検査陽性率　','%',newly/pcrtest*100,p_newly/p_pcrtest*100,date)
+    value,p_value,date=make_7dma(df_list[inpatient_no],1)
+    fwrite_line(f,0,'入院治療を要する者','',value,p_value,date)
+    value,p_value,date=make_7dma(df_list[severe_no]   ,1)
+    fwrite_line(f,0,'重症者数　　　　　','',value,p_value,date)
+    value,p_value,date=make_7dma(df_list[death_no]    ,1)
+    fwrite_line(f,0,'死亡者数　　　　　','',value,p_value,date)
+    f.close()
 
 if __name__ == "__main__":
     print('download & coping covid19 open data from internet')
@@ -75,7 +126,6 @@ if __name__ == "__main__":
             df_list[death_no].at[ii,df_list[death_no].columns[col]]=buf1-buf2
             buf2=buf1
         df_list[death_no].at[0,df_list[death_no].columns[col]]=0
-
 
     #calculate and set xmin,xmax,ymin,ymax
     xmin = datetime.datetime.strptime('2021-07-01', '%Y-%m-%d')
@@ -150,7 +200,7 @@ if __name__ == "__main__":
         xmax = np.min([xtmp,xmax])
     print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
-    plt.yscale("linear")
+    plt.yscale("log")
     plt.legend()
     plt.tick_params(axis='x', rotation=90)
     axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
@@ -211,7 +261,7 @@ if __name__ == "__main__":
         axes = fig.add_subplot(111)
         # print('\r','-',df_mag_list[newly_no].columns[col],'           ',end="")
         plt.title(df_mag_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
-        for jj in [newly_no,inpatient_no,severe_no,death_no]:
+        for jj in [newly_no,inpatient_no]:
             if jj==inpatient_no:
                 plt.plot(df_mag_list[jj].iloc[:,0],df_mag_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
             else:
@@ -219,8 +269,8 @@ if __name__ == "__main__":
             xtmp = np.max([df_mag_list[jj].iloc[:,0]])
             xmax = np.min([xtmp,xmax])
         plt.xlim(xmin,xmax)
-        # plt.ylim(0.5,5)
-        plt.yscale("linear")
+        plt.ylim(0.5,5)
+        plt.yscale("log")
         plt.legend()
         plt.tick_params(axis='x', rotation=90)
         axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
@@ -237,7 +287,7 @@ if __name__ == "__main__":
         plt.cla()
         plt.clf()
         plt.close() 
-    print('\r','                                     ')
+    print('\r','                                       ')
 
     # 10k newly graph by pickuped Prefectures
     print('making covid19 graph : result/covid19_100k_MHLW.png')
@@ -262,33 +312,36 @@ if __name__ == "__main__":
     plt.clf()
     plt.close()
 
-    f = open('result/result.txt', 'w', encoding='UTF-8')
-    f.write('厚生労働省オープンデータより週平均\n')
-    print('-----------------tweet text----------------------------')
-    value,p_value,date=make_7dma(df_list[pcrtest_no],1)
-    print('厚生労働省データより週平均('+date+')')
-    print('()内前週比')
-    print_line('PCR検査数','',value,p_value)
-    fwrite_line(f,'ＰＣＲ検査数　　　','',value,p_value,date)
-    pcrtest=value
-    p_pcrtest=p_value
-    d_pcrtest=date
-    value,p_value,date=make_7dma(df_list[newly_no],1)
-    print_line('新規陽性者数','',value,p_value)
-    fwrite_line(f,'新規陽性者数　　　','',value,p_value,date)
-    newly=value
-    p_newly=p_value
-    d_newly=date
-    if d_pcrtest==d_newly:
-        print_line1('PCR検査陽性率','%',newly/pcrtest*100,p_newly/p_pcrtest*100)
-        fwrite_line1(f,'ＰＣＲ検査陽性率　','%',newly/pcrtest*100,p_newly/p_pcrtest*100,date)
-    value,p_value,date=make_7dma(df_list[inpatient_no],1)
-    print_line('入院治療を要する者','',value,p_value)
-    fwrite_line(f,'入院治療を要する者','',value,p_value,date)
-    value,p_value,date=make_7dma(df_list[severe_no]   ,1)
-    print_line('重症者数','',value,p_value)
-    fwrite_line(f,'重症者数　　　　　','',value,p_value,date)
-    value,p_value,date=make_7dma(df_list[death_no]    ,1)
-    print_line('死亡者数','',value,p_value)
-    fwrite_line(f,'死亡者数　　　　　','',value,p_value,date)
-    print('#COVID19 #新型コロナ')
+    make_tweet_text(df_list)
+    make_result_text(df_list)
+    # f = open('result/result.txt', 'w', encoding='UTF-8')
+    # f_tw = open('result/twitter.txt', 'w', encoding='UTF-8')
+    # f_tw.write('#COVID19 #新型コロナ')
+    # f.write('厚生労働省オープンデータより週平均\n')
+    # f_tw.write('-----------------tweet text----------------------------')
+    # value,p_value,date=make_7dma(df_list[pcrtest_no],1)
+    # f_tw.write('厚生労働省データより週平均('+date+')')
+    # f_tw.write('()内前週比')
+    # fwrite_line_tw(f_tw,'PCR検査数','',value,p_value)
+    # fwrite_line(f,'ＰＣＲ検査数　　　','',value,p_value,date)
+    # pcrtest=value
+    # p_pcrtest=p_value
+    # d_pcrtest=date
+    # value,p_value,date=make_7dma(df_list[newly_no],1)
+    # fwrite_line_tw(f_tw,0,'新規陽性者数','',value,p_value)
+    # fwrite_line(f,'新規陽性者数　　　','',value,p_value,date)
+    # newly=value
+    # p_newly=p_value
+    # d_newly=date
+    # if d_pcrtest==d_newly:
+    #     fwrite_line_tw(f_tw,1,'PCR検査陽性率','%',newly/pcrtest*100,p_newly/p_pcrtest*100)
+    #     fwrite_line1(f,'ＰＣＲ検査陽性率　','%',newly/pcrtest*100,p_newly/p_pcrtest*100,date)
+    # value,p_value,date=make_7dma(df_list[inpatient_no],1)
+    # fwrite_line_tw(f_tw,0,'入院治療を要する者','',value,p_value)
+    # fwrite_line(f,'入院治療を要する者','',value,p_value,date)
+    # value,p_value,date=make_7dma(df_list[severe_no]   ,1)
+    # fwrite_line_tw(f_tw,0,'重症者数','',value,p_value)
+    # fwrite_line(f,'重症者数　　　　　','',value,p_value,date)
+    # value,p_value,date=make_7dma(df_list[death_no]    ,1)
+    # fwrite_line_tw(f_tw,0,'死亡者数','',value,p_value)
+    # fwrite_line(f,'死亡者数　　　　　','',value,p_value,date)

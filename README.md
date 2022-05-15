@@ -9,10 +9,11 @@ comming soon...
 * download MHLW covid19 open data
 * make graph
 * make text
+* view data on GUI/tk
 # Requirement
 
-* Python 3.9.12 (tags/v3.9.12:b28265d, Mar 23 2022, 23:52:46) [MSC v.1929 64 bit (AMD64)] on win32
-* Visual Studiio Code : 1.66.2
+* Python 3.10.4
+* Visual Studiio Code : 1.67.1
 # Installation
 
 ```PowerShell
@@ -20,20 +21,35 @@ pip install pandas
 pip install nummpy
 pip install matplotlib
 pip install datetime
+pip install requests
+pip install datetime
 ```
 
 # Usage
 
+normal execution
 ```PowerShell
 git clone https://github.com/isshy-you/covid19
 cd covid19
 python covid19.py
 ```
+compile
+```PowerShell
+cd covid19
+pip install pyinstaller
+pyinstaller covid19.py --name covid19 --onefile --clean
+```
+execution by compiled
+```PowerShell
+.\dist\covid19.exe
+```
+
 # Note
 
 
 # Author
 
+* https://github.com/isshy-you
 # License
 
 [MIT license](https://en.wikipedia.org/wiki/MIT_License).

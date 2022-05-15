@@ -1,11 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# pip install pandas
+# pip install numpy
+# pip install requests
+# pip install datetime
 import os
 import requests
 import datetime
 import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 
 class url_download():
     def __init__(self,):
@@ -73,13 +77,25 @@ class csv_load():
         return(df)
 
     def make_mag(self,df):
+        df_tmp=df.copy()
         df_mag=df.copy()
-        for ii in range(0,len(df_mag)):
-            for jj,pref in enumerate(df_mag.columns):
-                if ii >= 1 and jj != 0 and df.at[ii-1,pref]!=0:
-                    df_mag.at[ii,pref]=df.at[ii,pref]/df.at[ii-1,pref]
-                else:
-                    if jj!=0:
+        for jj,pref in enumerate(df.columns):
+            for ii in range(6,len(df)):
+                if jj != 0:
+                        df_tmp.at[ii,pref] = df.iloc[:,jj].rolling(window=7, min_periods=1).mean().iloc[-1]
+                        # df_tmp.at[ii,pref]=(df.at[ii,pref]
+                        #                 +df.at[ii-1,pref]
+                        #                 +df.at[ii-2,pref]
+                        #                 +df.at[ii-3,pref]
+                        #                 +df.at[ii-4,pref]
+                        #                 +df.at[ii-5,pref]
+                        #                 +df.at[ii-6,pref])/7
+        for jj,pref in enumerate(df_tmp.columns):
+            if jj!=0:
+                for ii in range(0,len(df_tmp)):
+                    if ii >= 7 and jj != 0 and df_tmp.at[ii-7,pref]!=0:
+                        df_mag.at[ii,pref]=df_tmp.at[ii,pref]/df_tmp.at[ii-7,pref]
+                    else:
                         df_mag.at[ii,pref]=np.nan
         return(df_mag)
 
