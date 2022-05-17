@@ -25,9 +25,9 @@ def print_line(text,mode,unit,value,p_value):
 def fwrite_line_tw(f,mode,text,unit,value,p_value):
     line1=text+':'+'{:>0,.0f}'.format(value)+unit
     if mode==0:
-        line2='('+'{:>+0,.0f}'.format(value-p_value)+unit+':'+'{:>0.0f}'.format(value/p_value*100)+'%)'
+        line2='('+'{:>+0,.0f}'.format(value-p_value)+unit+':'+'{:>0.0f}'.format(value/p_value*100)+'%)'+'\n'
     else:
-        line2='('+'{:>+0,.1f}'.format(value-p_value)+unit+')'
+        line2='('+'{:>+0,.1f}'.format(value-p_value)+unit+')'+'\n'
     f.write(line1+line2)
 
 def fwrite_line(f,mode,text,unit,value,p_value,date):
@@ -51,11 +51,11 @@ def make_7dma(df,column):
 
 def make_tweet_text(df_list):
     f_tw = open('result/twitter.txt', 'w', encoding='UTF-8')
-    f_tw.write('-----------------tweet text----------------------------')
-    f_tw.write('#COVID19 #新型コロナ')
+    f_tw.write('-----------------tweet text----------------------------'+'\n')
+    f_tw.write('#COVID19 #新型コロナ'+'\n')
     value,p_value,date=make_7dma(df_list[pcrtest_no],1)
-    f_tw.write('厚生労働省データより週平均('+date+')')
-    f_tw.write('()内前週比')
+    f_tw.write('厚生労働省データより週平均('+date+')'+'\n')
+    f_tw.write('()内前週比'+'\n')
     fwrite_line_tw(f_tw,0,'PCR検査数','',value,p_value)
     pcrtest=value
     p_pcrtest=p_value
