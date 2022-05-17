@@ -79,17 +79,24 @@ class csv_load():
     def make_mag(self,df):
         df_tmp=df.copy()
         df_mag=df.copy()
+        # print(df[df.columns[1]])
         for jj,pref in enumerate(df.columns):
-            for ii in range(6,len(df)):
+            for ii in range(0,len(df)):
                 if jj != 0:
-                        df_tmp.at[ii,pref] = df.iloc[:,jj].rolling(window=7, min_periods=1).mean().iloc[-1]
-                        # df_tmp.at[ii,pref]=(df.at[ii,pref]
-                        #                 +df.at[ii-1,pref]
-                        #                 +df.at[ii-2,pref]
-                        #                 +df.at[ii-3,pref]
-                        #                 +df.at[ii-4,pref]
-                        #                 +df.at[ii-5,pref]
-                        #                 +df.at[ii-6,pref])/7
+                    # df_tmp[pref] = df.iloc[:,jj].rolling(window=7, min_periods=1).mean().iloc[-1]
+                    num = min(ii,6)
+                    ave = 0
+                    for kk in range(0,num+1):
+                        ave += df.at[ii-kk,pref]
+                    df_tmp.at[ii,pref]=ave/(num+1)
+                    # df_tmp.at[ii,pref]=(df.at[ii,pref]
+                    #                 +df.at[ii-1,pref]
+                    #                 +df.at[ii-2,pref]
+                    #                 +df.at[ii-3,pref]
+                    #                 +df.at[ii-4,pref]
+                    #                 +df.at[ii-5,pref]
+                    #                 +df.at[ii-6,pref])/7
+        # print(df_tmp[df_tmp.columns[1]])
         for jj,pref in enumerate(df_tmp.columns):
             if jj!=0:
                 for ii in range(0,len(df_tmp)):
