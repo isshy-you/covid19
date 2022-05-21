@@ -137,30 +137,33 @@ if __name__ == "__main__":
     ymin = 1
     ymax = 1_000_000
 
-    # pcrtest/newly_confirmed graph
-    print('making covid19 graph : result/covid19_MHLW.png')
+    # newly_confirmed/pcrtest ratio graph
+    print('making covid19 graph : result/covid19_MHLW_ncr.png')
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
-    plt.title('COVID-19 from MHLW Open Data')
-    plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
-    plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_names[newly_no])
+    plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(7days Moving Average)')
+    # plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
+    # plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_names[newly_no])
+    plt.plot(df_list[newly_no].iloc[:,0]
+                ,df_list[newly_no].iloc[:,1].rolling(window=7, min_periods=1).mean()\
+                /df_list[pcrtest_no].iloc[:,1].rolling(window=7, min_periods=1).mean())
     xmax1 = max(df_list[pcrtest_no].iloc[:,0])
     xmax2 = max(df_list[newly_no].iloc[:,0])
     xmax = min([xmax1,xmax2])
     print('from:',xmin,' to:',xmax)
-    plt.xlim(xmin,xmax)
+    # plt.xlim(xmin,xmax)
     # plt.yscale("log")
     plt.legend()
     plt.tick_params(axis='x', rotation=90)
     axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
-    axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    # axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
     # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
     # plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
     plt.grid()
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
     # plt.show()
-    fig.savefig('result/covid19_MHLW', bbox_inches="tight", pad_inches=0.05)
+    fig.savefig('result/covid19_MHLW_ncr.png', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
 
