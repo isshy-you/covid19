@@ -10,7 +10,7 @@ import datetime
 import os
 import pandas as pd
 import numpy as np
-
+import math
 class url_download():
     def __init__(self,):
         self.MHLW_URLs = ['https://covid19.mhlw.go.jp/public/opendata/newly_confirmed_cases_daily.csv'
@@ -87,7 +87,12 @@ class csv_load():
                     num = min(ii,6)
                     ave = 0
                     for kk in range(0,num+1):
-                        ave += df.at[ii-kk,pref]
+                        # print('value=',df.at[ii-kk,pref])
+                        if type(df.at[ii-kk,pref])==str:
+                            df.at[ii-kk,pref]=df.at[ii-kk,pref].replace(",","")
+                        if math.isnan(float(df.at[ii-kk,pref])):
+                            df.at[ii-kk,pref]=0
+                        ave += int(df.at[ii-kk,pref])
                     df_tmp.at[ii,pref]=ave/(num+1)
                     # df_tmp.at[ii,pref]=(df.at[ii,pref]
                     #                 +df.at[ii-1,pref]
