@@ -296,7 +296,7 @@ def make_graph_MHLW_100k():
 
 if __name__ == "__main__":
     # define SWITCH
-    DOWNLOAD = 0
+    DOWNLOAD = 1
 
     print('download & coping covid19 open data from internet')
     ap=covid19_lib.url_download()
@@ -335,13 +335,13 @@ if __name__ == "__main__":
     ymin = 1
     ymax = 1_000_000
 
-    # make_graph_MHLW_NCR()
-    # make_graph_MHLW_ALL()
-    # make_graph_MHLW_MAG()
-    # make_graph_MHLW_PREF()
+    make_graph_MHLW_NCR()
+    make_graph_MHLW_ALL()
+    make_graph_MHLW_MAG()
     make_graph_MHLW_PREF()
-    # make_graph_MHLW_100k()
-    # make_tweet_text(df_list)
-    # make_result_text(df_list)
+    make_graph_MHLW_PREF()
+    make_graph_MHLW_100k()
+    make_tweet_text(df_list)
+    make_result_text(df_list)
 
 
