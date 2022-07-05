@@ -115,7 +115,7 @@ def make_graph_MHLW_NCR():
     print('from:',xmin,' to:',xmax)
     # plt.xlim(xmin,xmax)
     # plt.yscale("log")
-    plt.legend()
+    # plt.legend()
     plt.tick_params(axis='x', rotation=90)
     axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
     # axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
@@ -133,7 +133,7 @@ def make_graph_MHLW_ALL():
     # All Graph
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
-    print('making covid19 graph : result/covid19_MHLW_All_7dMA')
+    print('making covid19 graph : result/covid19_MHLW_All_7dMA.png')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
@@ -153,15 +153,15 @@ def make_graph_MHLW_ALL():
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
     # plt.show()
-    fig.savefig('result/covid19_MHLW_All_7dMA', bbox_inches="tight", pad_inches=0.05)
+    fig.savefig('result/covid19_MHLW_All_7dMA.png', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
     # plt.close()
 
-def make_graph_MHLW_MAG():
+def make_graph_MHLW_ALL_MAG():
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
-    print('making covid19 magnitude graph : result/covid19_MHLW_All_7dMA_mag')
+    print('making covid19 magnitude graph : result/covid19_MHLW_All_7dMA_mag.png')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [newly_no,inpatient_no,severe_no,death_no]:
@@ -182,7 +182,7 @@ def make_graph_MHLW_MAG():
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
     # plt.show()
-    fig.savefig('result/covid19_MHLW_All_7dMA_mag', bbox_inches="tight", pad_inches=0.05)
+    fig.savefig('result/covid19_MHLW_All_7dMA_mag.png', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
     plt.close()
@@ -224,7 +224,7 @@ def make_graph_MHLW_PREF():
         plt.close() 
     print('\r','                                     ')
 
-def make_graph_MHLW_PREF():
+def make_graph_MHLW_PREF_MAG():
     # prefecture text
     print('making covid19 magnitude list for each prefecture')
     pref_mag_num=[]
@@ -232,6 +232,7 @@ def make_graph_MHLW_PREF():
     pref_mag_name=[]
     pref_mag_color=[]
     fname='result/covid19_MHLW_Pref_Mag.txt'
+    today = np.max(df_list[newly_no].iloc[:,0])
     with open(fname, mode='w') as f:
         for col in range(1,len(df_mag_list[newly_no].columns),1):
             # print('\r','-',df_mag_list[newly_no].columns[col],'           ',end="")
@@ -245,6 +246,36 @@ def make_graph_MHLW_PREF():
             pref_mag_num.append(int(col))
             pref_mag_name.append(df_list[newly_no].columns[col])
             pref_mag_val.append(float(val[len(val)-1]))
+
+            color = []
+            for ii,value in enumerate(val):
+                if value < 1:
+                    color.append('blue')
+                else:
+                    color.append('red')
+                val[ii]=(value-1)*100
+            fig = plt.figure(1,figsize=(6,6))
+            axes = fig.add_subplot(111)
+            axes.bar(df_list[newly_no].iloc[:,0],val,color=color,align='center',log=False)
+            axes.tick_params(axis='x', rotation=90)
+            axes.set_axisbelow(True)
+            # axes.grid(visible=True, which="major", color="#ababab", linestyle="-", axis="y")
+            # plt.gird()
+            axes.grid(which="major",alpha=0.6)
+            axes.grid(which="minor",alpha=0.3)
+            axes.set_title("COVID-19 from MHLW Open Data"
+                        +"~{0:%Y-%m-%d}".format(today)
+                        +" \n newly confirmed weekly increase rate \n "
+                        +df_list[newly_no].columns[col]+"(7days Moving Average)")
+            axes.set_ylabel('increase rate [+/-%]')
+            plt.ylim(-50,200)
+            # plt.tight_layout()
+            fname='result/covid19_MHLW_'+'{:02d}'.format(col-1)+df_list[newly_no].columns[col]+'_mag'
+            fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
+            plt.cla()
+            plt.clf()
+            plt.close()
+
             print('\r','-'+fname+'                   ',end="")
     print('\r','                                       ')
     for kk,val in enumerate(pref_mag_val):
@@ -254,6 +285,7 @@ def make_graph_MHLW_PREF():
             pref_mag_color.append('red')
         pref_mag_val[kk]=(val-1)*100
 
+    today = np.max(df_list[newly_no].iloc[:,0])
     fig = plt.figure(1,figsize=(12,6))
     axes = fig.add_subplot(111)
     axes.bar(pref_mag_num,pref_mag_val,tick_label=pref_mag_name,color=pref_mag_color,align='center',log=False)
@@ -263,17 +295,19 @@ def make_graph_MHLW_PREF():
     # plt.gird()
     axes.grid(which="major",alpha=0.6)
     axes.grid(which="minor",alpha=0.3)
-    axes.set_title("COVID-19 from MHLW Open Data \n newly confirmed weekly increase rate \n (7days Moving Average)")
+    axes.set_title("COVID-19 from MHLW Open Data"+"~{0:%Y-%m-%d}".format(today)+" \n newly confirmed weekly increase rate \n (7days Moving Average)")
     axes.set_ylabel('increase rate [+/-%]')
     # plt.tight_layout()
     fname='result/covid19_MHLW_Pref_Mag.png'
     fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
+    plt.cla()
+    plt.clf()
+    plt.close()
 
 def make_graph_MHLW_100k():
     # 10k newly graph by pickuped Prefectures
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     pref_list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
-    xmin = datetime.datetime.strptime('2022-01-01', '%Y-%m-%d')
     xmax = np.max(df_list[newly_100k_no].iloc[:,0])
     fig = plt.figure(1,figsize=(6,6))
     axes = fig.add_subplot(111)
@@ -337,9 +371,9 @@ if __name__ == "__main__":
 
     make_graph_MHLW_NCR()
     make_graph_MHLW_ALL()
-    make_graph_MHLW_MAG()
+    make_graph_MHLW_ALL_MAG()
     make_graph_MHLW_PREF()
-    make_graph_MHLW_PREF()
+    make_graph_MHLW_PREF_MAG()
     make_graph_MHLW_100k()
     make_tweet_text(df_list)
     make_result_text(df_list)
