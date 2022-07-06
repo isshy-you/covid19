@@ -224,6 +224,23 @@ def make_graph_MHLW_PREF():
         plt.close() 
     print('\r','                                     ')
 
+def autolabel(ax,rects):
+    """Attach a text label above each bar in *rects*, displaying its height."""
+    for rect in rects:
+        height = rect.get_height()
+        if height>0:
+            ax.annotate('{0:^+3.0f}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+        else:
+            ax.annotate('{0:^+3.0f}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, -height),
+                        xytext=(0,-3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+
 def make_graph_MHLW_PREF_MAG():
     # prefecture text
     print('making covid19 magnitude list for each prefecture')
@@ -256,7 +273,7 @@ def make_graph_MHLW_PREF_MAG():
                 val[ii]=(value-1)*100
             fig = plt.figure(1,figsize=(6,6))
             axes = fig.add_subplot(111)
-            axes.bar(df_list[newly_no].iloc[:,0],val,color=color,align='center',log=False)
+            rects = axes.bar(df_list[newly_no].iloc[:,0], val, width=1, linewidth=1, color=color,align='center',log=False)
             axes.tick_params(axis='x', rotation=90)
             axes.set_axisbelow(True)
             # axes.grid(visible=True, which="major", color="#ababab", linestyle="-", axis="y")
@@ -264,10 +281,11 @@ def make_graph_MHLW_PREF_MAG():
             axes.grid(which="major",alpha=0.6)
             axes.grid(which="minor",alpha=0.3)
             axes.set_title("COVID-19 from MHLW Open Data"
-                        +"~{0:%Y-%m-%d}".format(today)
+                        +" ~{0:%Y-%m-%d}".format(today)
                         +" \n newly confirmed weekly increase rate \n "
                         +df_list[newly_no].columns[col]+"(7days Moving Average)")
             axes.set_ylabel('increase rate [+/-%]')
+            plt.xlim(xmin,today)
             plt.ylim(-50,200)
             # plt.tight_layout()
             fname='result/covid19_MHLW_'+'{:02d}'.format(col-1)+df_list[newly_no].columns[col]+'_mag'
@@ -278,24 +296,29 @@ def make_graph_MHLW_PREF_MAG():
 
             print('\r','-'+fname+'                   ',end="")
     print('\r','                                       ')
+
+    # result/covid19_MHLW_Pref_Mag.png
+    print('making covid19 graph : result/covid19_MHLW_Pref_Mag.png')
     for kk,val in enumerate(pref_mag_val):
         if val < 1:
             pref_mag_color.append('blue')
         else:
             pref_mag_color.append('red')
         pref_mag_val[kk]=(val-1)*100
-
     today = np.max(df_list[newly_no].iloc[:,0])
-    fig = plt.figure(1,figsize=(12,6))
+    fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
-    axes.bar(pref_mag_num,pref_mag_val,tick_label=pref_mag_name,color=pref_mag_color,align='center',log=False)
+    rects = axes.bar(pref_mag_num,pref_mag_val,tick_label=pref_mag_name,color=pref_mag_color,align='center',log=False)
+    autolabel(axes,rects)
     axes.tick_params(axis='x', rotation=90)
     axes.set_axisbelow(True)
     # axes.grid(visible=True, which="major", color="#ababab", linestyle="-", axis="y")
     # plt.gird()
     axes.grid(which="major",alpha=0.6)
     axes.grid(which="minor",alpha=0.3)
-    axes.set_title("COVID-19 from MHLW Open Data"+"~{0:%Y-%m-%d}".format(today)+" \n newly confirmed weekly increase rate \n (7days Moving Average)")
+    axes.set_title("COVID-19 from MHLW Open Data"+" ~{0:%Y-%m-%d}".format(today)
+                    +"\n newly confirmed weekly increase rate (7days Moving Average)"
+                    +"\n By prefecture")
     axes.set_ylabel('increase rate [+/-%]')
     # plt.tight_layout()
     fname='result/covid19_MHLW_Pref_Mag.png'
@@ -306,6 +329,7 @@ def make_graph_MHLW_PREF_MAG():
 
 def make_graph_MHLW_100k():
     # 10k newly graph by pickuped Prefectures
+    # result/covid19_100k_MHLW.png
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     pref_list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
     xmax = np.max(df_list[newly_100k_no].iloc[:,0])
