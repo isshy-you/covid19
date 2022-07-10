@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# covid19.py
 # pip install pandas
 # pip install numpy
 # pip install matplotlib
+
+# covid19_lib
+# pip install requests
 
 import datetime
 import os
@@ -53,20 +58,20 @@ def make_tweet_text(df_list): #twitter 用TXT生成
     f_tw = open('result/twitter.txt', 'w', encoding='UTF-8')
     f_tw.write('-----------------tweet text----------------------------'+'\n')
     f_tw.write('#COVID19 #新型コロナ'+'\n')
-    value,p_value,date=make_7dma(df_list[pcrtest_no],1)
+    # value,p_value,date=make_7dma(df_list[pcrtest_no],1)
+    # fwrite_line_tw(f_tw,0,'PCR検査数','',value,p_value)
+    # pcrtest=value
+    # p_pcrtest=p_value
+    # d_pcrtest=date
+    value,p_value,date=make_7dma(df_list[newly_no],1)
     f_tw.write('厚生労働省データより週平均('+date+')'+'\n')
     f_tw.write('()内前週比'+'\n')
-    fwrite_line_tw(f_tw,0,'PCR検査数','',value,p_value)
-    pcrtest=value
-    p_pcrtest=p_value
-    d_pcrtest=date
-    value,p_value,date=make_7dma(df_list[newly_no],1)
     fwrite_line_tw(f_tw,0,'新規陽性者数','',value,p_value)
-    newly=value
-    p_newly=p_value
-    d_newly=date
-    if d_pcrtest==d_newly:
-        fwrite_line_tw(f_tw,1,'PCR検査陽性率','%',newly/pcrtest*100,p_newly/p_pcrtest*100)
+    # newly=value
+    # p_newly=p_value
+    # d_newly=date
+    # if d_pcrtest==d_newly:
+    #     fwrite_line_tw(f_tw,1,'PCR検査陽性率','%',newly/pcrtest*100,p_newly/p_pcrtest*100)
     value,p_value,date=make_7dma(df_list[inpatient_no],1)
     fwrite_line_tw(f_tw,0,'入院治療を要する者','',value,p_value)
     value,p_value,date=make_7dma(df_list[severe_no]   ,1)
@@ -101,7 +106,7 @@ def make_result_text(df_list): #結果テキスト生成
 def make_graph_MHLW_NCR():
     # newly_confirmed/pcrtest ratio graph
     print('making covid19 graph : result/covid19_MHLW_ncr.png')
-    fig = plt.figure(1,figsize=(6,6))
+    fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(7days Moving Average)')
     # plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
@@ -131,7 +136,7 @@ def make_graph_MHLW_NCR():
 
 def make_graph_MHLW_ALL():
     # All Graph
-    fig = plt.figure(1,figsize=(6,6))
+    fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     print('making covid19 graph : result/covid19_MHLW_All_7dMA.png')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
@@ -159,7 +164,7 @@ def make_graph_MHLW_ALL():
     # plt.close()
 
 def make_graph_MHLW_ALL_MAG():
-    fig = plt.figure(1,figsize=(6,6))
+    fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     print('making covid19 magnitude graph : result/covid19_MHLW_All_7dMA_mag.png')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
@@ -192,7 +197,7 @@ def make_graph_MHLW_PREF():
     print('making covid19 graph for each prefecture')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for col in range(1,len(df_list[newly_no].columns),1):
-        fig = plt.figure(1,figsize=(6,6))
+        fig = plt.figure(1,figsize=(16,9))
         axes = fig.add_subplot(111)
         # print('\r','-',df_list[newly_no].columns[col],'           ',end="")
         plt.title(df_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
@@ -258,11 +263,13 @@ def make_graph_MHLW_PREF_MAG():
             # if jj==inpatient_no:
             #     val = df_mag_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean()
             # else:
-            val = df_mag_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean()
+            val = df_mag_list[jj].iloc[:,col]
             f.write(df_list[newly_no].columns[col]+','+str(val[len(val)-1])+'\n')
             pref_mag_num.append(int(col))
             pref_mag_name.append(df_list[newly_no].columns[col])
             pref_mag_val.append(float(val[len(val)-1]))
+            # fname='result/covid19_MHLW_'+'{:02d}'.format(col-1)+df_list[newly_no].columns[col]+'_mag.csv'
+            # df_mag_list[jj].iloc[:,col].to_csv(fname)
 
             color = []
             for ii,value in enumerate(val):
@@ -271,7 +278,7 @@ def make_graph_MHLW_PREF_MAG():
                 else:
                     color.append('red')
                 val[ii]=(value-1)*100
-            fig = plt.figure(1,figsize=(6,6))
+            fig = plt.figure(1,figsize=(16,9))
             axes = fig.add_subplot(111)
             rects = axes.bar(df_list[newly_no].iloc[:,0], val, width=1, linewidth=1, color=color,align='center',log=False)
             axes.tick_params(axis='x', rotation=90)
@@ -333,7 +340,7 @@ def make_graph_MHLW_100k():
     print('making covid19 graph : result/covid19_100k_MHLW.png')
     pref_list = ['Hokkaido','Tokyo','Aichi','Osaka','Fukuoka','Okinawa']
     xmax = np.max(df_list[newly_100k_no].iloc[:,0])
-    fig = plt.figure(1,figsize=(6,6))
+    fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     for pref in pref_list:
         plt.plot(df_list[newly_100k_no].iloc[:,0],df_list[newly_100k_no][pref].rolling(window=7, min_periods=1).mean(),label=pref)
