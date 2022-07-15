@@ -57,7 +57,7 @@ def make_7dma(df,column): #７日移動平均計算
 def make_tweet_text(df_list): #twitter 用TXT生成
     f_tw = open('result/twitter.txt', 'w', encoding='UTF-8')
     f_tw.write('-----------------tweet text----------------------------'+'\n')
-    f_tw.write('#COVID19 #新型コロナ'+'\n')
+    f_tw.write('#COVID19 #新型コロナ #厚生労働省データ'+'\n')
     # value,p_value,date=make_7dma(df_list[pcrtest_no],1)
     # fwrite_line_tw(f_tw,0,'PCR検査数','',value,p_value)
     # pcrtest=value
@@ -78,6 +78,7 @@ def make_tweet_text(df_list): #twitter 用TXT生成
     fwrite_line_tw(f_tw,0,'重症者数','',value,p_value)
     value,p_value,date=make_7dma(df_list[death_no]    ,1)
     fwrite_line_tw(f_tw,0,'死亡者数','',value,p_value)
+    fwrite_line_tw(f_tw,'#対数グラフ')
     f_tw.close()
 
 def make_result_text(df_list): #結果テキスト生成
