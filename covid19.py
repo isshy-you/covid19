@@ -78,7 +78,7 @@ def make_tweet_text(df_list): #twitter 用TXT生成
     fwrite_line_tw(f_tw,0,'重症者数','',value,p_value)
     value,p_value,date=make_7dma(df_list[death_no]    ,1)
     fwrite_line_tw(f_tw,0,'死亡者数','',value,p_value)
-    fwrite_line_tw(f_tw,'#対数グラフ')
+    f_tw.write('#対数グラフ'+'\n')
     f_tw.close()
 
 def make_result_text(df_list): #結果テキスト生成
@@ -106,7 +106,9 @@ def make_result_text(df_list): #結果テキスト生成
 
 def make_graph_MHLW_NCR():
     # newly_confirmed/pcrtest ratio graph
-    print('making covid19 graph : result/covid19_MHLW_ncr.png')
+    xmax1 = max(df_list[pcrtest_no].iloc[:,0])
+    xmax2 = max(df_list[newly_no].iloc[:,0])
+    xmax = min([xmax1,xmax2])
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(7days Moving Average)')
@@ -115,10 +117,6 @@ def make_graph_MHLW_NCR():
     plt.plot(df_list[newly_no].iloc[:,0]
                 ,df_list[newly_no].iloc[:,1].rolling(window=7, min_periods=1).mean()\
                 /df_list[pcrtest_no].iloc[:,1].rolling(window=7, min_periods=1).mean())
-    xmax1 = max(df_list[pcrtest_no].iloc[:,0])
-    xmax2 = max(df_list[newly_no].iloc[:,0])
-    xmax = min([xmax1,xmax2])
-    print('from:',xmin,' to:',xmax)
     # plt.xlim(xmin,xmax)
     # plt.yscale("log")
     # plt.legend()
@@ -134,19 +132,20 @@ def make_graph_MHLW_NCR():
     fig.savefig('result/covid19_MHLW_ncr.png', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
+    plt.close()
+    print('covid19 graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_ncr.png')
 
 def make_graph_MHLW_ALL():
     # All Graph
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
-    print('making covid19 graph : result/covid19_MHLW_All_7dMA.png')
-    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
+    # print('from:',xmin,' to:',xmax)
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
+    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
     for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
         plt.plot(df_list[ii].iloc[:,0],df_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
         xtmp = np.max([df_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
-    print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
     plt.yscale("log")
     plt.legend()
@@ -162,12 +161,12 @@ def make_graph_MHLW_ALL():
     fig.savefig('result/covid19_MHLW_All_7dMA.png', bbox_inches="tight", pad_inches=0.05)
     plt.cla()
     plt.clf()
-    # plt.close()
+    plt.close()
+    print('covid19 graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_All_7dMA.png')
 
 def make_graph_MHLW_ALL_MAG():
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
-    print('making covid19 magnitude graph : result/covid19_MHLW_All_7dMA_mag.png')
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [newly_no,inpatient_no,severe_no,death_no]:
@@ -175,7 +174,7 @@ def make_graph_MHLW_ALL_MAG():
         plt.plot(df_mag_list[ii].iloc[:,0],df_mag_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
         xtmp = np.max([df_mag_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
-    print('from:',xmin,' to:',xmax)
+    # print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
     plt.yscale("log")
     plt.legend()
@@ -192,11 +191,12 @@ def make_graph_MHLW_ALL_MAG():
     plt.cla()
     plt.clf()
     plt.close()
+    print('making covid19 magnitude graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_All_7dMA_mag.png')
 
 def make_graph_MHLW_PREF():
     # prefecture graph
-    print('making covid19 graph for each prefecture')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
+    print('making covid19 graph for each prefecture('+str(xmin)+'~'+str(xmax)+')')
     for col in range(1,len(df_list[newly_no].columns),1):
         fig = plt.figure(1,figsize=(16,9))
         axes = fig.add_subplot(111)
@@ -228,7 +228,7 @@ def make_graph_MHLW_PREF():
         plt.cla()
         plt.clf()
         plt.close() 
-    print('\r','                                     ')
+    print('\r','finished.                                     ')
 
 def autolabel(ax,rects):
     """Attach a text label above each bar in *rects*, displaying its height."""
@@ -278,7 +278,8 @@ def make_graph_MHLW_PREF_MAG():
                     color.append('blue')
                 else:
                     color.append('red')
-                val[ii]=(value-1)*100
+                # val[ii]=(val[ii]-1)*100
+            val = (val-1)*100
             fig = plt.figure(1,figsize=(16,9))
             axes = fig.add_subplot(111)
             rects = axes.bar(df_list[newly_no].iloc[:,0], val, width=1, linewidth=1, color=color,align='center',log=False)
@@ -303,10 +304,10 @@ def make_graph_MHLW_PREF_MAG():
             plt.close()
 
             print('\r','-'+fname+'                   ',end="")
-    print('\r','                                       ')
+    print('\r','finished.                                       ')
 
     # result/covid19_MHLW_Pref_Mag.png
-    print('making covid19 graph : result/covid19_MHLW_Pref_Mag.png')
+    print('covid19 graph : result/covid19_MHLW_Pref_Mag.png')
     for kk,val in enumerate(pref_mag_val):
         if val < 1:
             pref_mag_color.append('blue')
