@@ -55,6 +55,13 @@ class csv_load():
                             ,'deaths'
                             ,'pcr_case'
                             ,'newly_confirmed_cases_per_100k']
+        self.MHLW_labels = [  'pcr_tested(PCR検査数)'
+                            ,'inpatient(患者数)'
+                            ,'newly_confirmed_cases(新規陽性者数)'
+                            ,'severe_cases(重症者数)'
+                            ,'deaths(死亡者数)'
+                            ,'pcr_case(PCR検査)'
+                            ,'newly_confirmed_cases_per_100k(新規陽性者数@10万人)']
         self.MHLW_fnames = ['database/pcr_tested_daily.csv'
                             ,'database/requiring_inpatient_care_etc_daily.csv'
                             ,'database/newly_confirmed_cases_daily.csv'
