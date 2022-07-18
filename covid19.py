@@ -13,6 +13,7 @@ import datetime
 import os
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 # import tqdm
@@ -111,9 +112,10 @@ def make_graph_MHLW_NCR():
     xmax = min([xmax1,xmax2])
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
-    plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(7days Moving Average)')
-    # plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_names[pcrtest_no])
-    # plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_names[newly_no])
+    plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(7days Moving Average)\n\
+               厚生労働省オープンデータより新型コロナ新規陽性率(7日移動平均)')
+    # plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_labels[pcrtest_no])
+    # plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_labels[newly_no])
     plt.plot(df_list[newly_no].iloc[:,0]
                 ,df_list[newly_no].iloc[:,1].rolling(window=7, min_periods=1).mean()\
                 /df_list[pcrtest_no].iloc[:,1].rolling(window=7, min_periods=1).mean())
@@ -141,9 +143,10 @@ def make_graph_MHLW_ALL():
     axes = fig.add_subplot(111)
     # print('from:',xmin,' to:',xmax)
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
-    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
+    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)\n\
+               厚生労働省オープンデータより新型コロナ統計情報(7日移動平均)')
     for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
-        plt.plot(df_list[ii].iloc[:,0],df_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
+        plt.plot(df_list[ii].iloc[:,0],df_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[ii])
         xtmp = np.max([df_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
     plt.xlim(xmin,xmax)
@@ -167,11 +170,12 @@ def make_graph_MHLW_ALL():
 def make_graph_MHLW_ALL_MAG():
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
-    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)')
+    plt.title('COVID-19 from MHLW Open Data (7days Moving Average)\n\
+               厚生労働省オープンデータより新型コロナ統計情報(倍率)(7日移動平均)')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [newly_no,inpatient_no,severe_no,death_no]:
     # for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
-        plt.plot(df_mag_list[ii].iloc[:,0],df_mag_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[ii])
+        plt.plot(df_mag_list[ii].iloc[:,0],df_mag_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[ii])
         xtmp = np.max([df_mag_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
     # print('from:',xmin,' to:',xmax)
@@ -204,9 +208,9 @@ def make_graph_MHLW_PREF():
         plt.title(df_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
         for jj in [newly_no,inpatient_no,severe_no,death_no]:
             if jj==inpatient_no:
-                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[jj])
             else:
-                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean(),label=load.MHLW_names[jj])
+                plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,col].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[jj])
             xtmp = np.max([df_list[jj].iloc[:,0]])
             xmax = np.min([xtmp,xmax])
         plt.xlim(xmin,xmax)
@@ -265,7 +269,7 @@ def make_graph_MHLW_PREF_MAG():
             #     val = df_mag_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean()
             # else:
             val = df_mag_list[jj].iloc[:,col]
-            f.write(df_list[newly_no].columns[col]+','+str(val[len(val)-1])+'\n')
+            f.write('{:<10}'.format(df_list[newly_no].columns[col])+','+str(val[len(val)-1])+'\n')
             pref_mag_num.append(int(col))
             pref_mag_name.append(df_list[newly_no].columns[col])
             pref_mag_val.append(float(val[len(val)-1]))
@@ -292,7 +296,8 @@ def make_graph_MHLW_PREF_MAG():
             axes.set_title("COVID-19 from MHLW Open Data"
                         +" ~{0:%Y-%m-%d}".format(today)
                         +" \n newly confirmed weekly increase rate \n "
-                        +df_list[newly_no].columns[col]+"(7days Moving Average)")
+                        +df_list[newly_no].columns[col]+"(7days Moving Average)\n\
+                        厚生労働省オープンデータより新型コロナ新規感染者数増加率(7日移動平均)")
             axes.set_ylabel('increase rate [+/-%]')
             plt.xlim(xmin,today)
             plt.ylim(-50,200)
@@ -327,8 +332,9 @@ def make_graph_MHLW_PREF_MAG():
     axes.grid(which="minor",alpha=0.3)
     axes.set_title("COVID-19 from MHLW Open Data"+" ~{0:%Y-%m-%d}".format(today)
                     +"\n newly confirmed weekly increase rate (7days Moving Average)"
-                    +"\n By prefecture")
-    axes.set_ylabel('increase rate [+/-%]')
+                    +"\n By prefecture\n\
+                    厚生労働省オープンデータより新型コロナ新規感染者数増加率(7日移動平均)")
+    axes.set_ylabel('increase rate(増加率) [+/-%]')
     # plt.tight_layout()
     fname='result/covid19_MHLW_Pref_Mag.png'
     fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
@@ -364,6 +370,8 @@ def make_graph_MHLW_100k():
 if __name__ == "__main__":
     # define SWITCH
     DOWNLOAD = 1
+
+    matplotlib.rc('font', family='Meiryo')
 
     print('download & coping covid19 open data from internet')
     ap=covid19_lib.url_download()
