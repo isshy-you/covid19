@@ -107,6 +107,13 @@ def make_result_text(df_list): #結果テキスト生成
 
 def make_graph_MHLW_NCR():
     # newly_confirmed/pcrtest ratio graph
+    df_tmp=[]
+    for ii in range (len(df_list[pcrtest_no])):
+        print(df_list[pcrtest_no].at[ii,'日付'])
+        print(df_list[newly_no].iloc[df_list[pcrtest_no].at[ii,'日付'],'ALL'])
+        df_tmp.append(df_list[newly_no].iloc[df_list[pcrtest_no].at[ii,'日付'],'ALL']/df_list[newly_no].iloc[df_list[pcrtest_no].at[ii,'日付'],'ALL'])
+    print(df_tmp)
+    exit()
     xmax1 = max(df_list[pcrtest_no].iloc[:,0])
     xmax2 = max(df_list[newly_no].iloc[:,0])
     xmax = min([xmax1,xmax2])
@@ -119,14 +126,14 @@ def make_graph_MHLW_NCR():
     plt.plot(df_list[newly_no].iloc[:,0]
                 ,df_list[newly_no].iloc[:,1].rolling(window=7, min_periods=1).mean()\
                 /df_list[pcrtest_no].iloc[:,1].rolling(window=7, min_periods=1).mean())
-    # plt.xlim(xmin,xmax)
+    plt.xlim(xmin,xmax)
     # plt.yscale("log")
     # plt.legend()
     plt.tick_params(axis='x', rotation=90)
     axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
     # axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
     # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
-    # plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
     plt.grid()
     # plt.gcf().autofmt_xdate()
     plt.tight_layout()
@@ -205,7 +212,9 @@ def make_graph_MHLW_PREF():
         fig = plt.figure(1,figsize=(16,9))
         axes = fig.add_subplot(111)
         # print('\r','-',df_list[newly_no].columns[col],'           ',end="")
-        plt.title(df_list[newly_no].columns[col]+':COVID-19 from MHLW Open Data (7days Moving Average)')
+        plt.title(df_list[newly_no].columns[col]
+                +':COVID-19 from MHLW Open Data (7days Moving Average)\n\
+                    都道府県別（7日移動平均）')
         for jj in [newly_no,inpatient_no,severe_no,death_no]:
             if jj==inpatient_no:
                 plt.plot(df_list[jj].iloc[:,0],df_list[jj].iloc[:,1+(col-1)*3].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[jj])
@@ -214,7 +223,7 @@ def make_graph_MHLW_PREF():
             xtmp = np.max([df_list[jj].iloc[:,0]])
             xmax = np.min([xtmp,xmax])
         plt.xlim(xmin,xmax)
-        plt.ylim(1,1000_000)
+        plt.ylim(1,10_000_000)
         plt.yscale("log")
         plt.legend()
         plt.tick_params(axis='x', rotation=90)
@@ -297,7 +306,7 @@ def make_graph_MHLW_PREF_MAG():
                         +" ~{0:%Y-%m-%d}".format(today)
                         +" \n newly confirmed weekly increase rate \n "
                         +df_list[newly_no].columns[col]+"(7days Moving Average)\n\
-                        厚生労働省オープンデータより新型コロナ新規感染者数増加率(7日移動平均)")
+                        厚生労働省オープンデータより新型コロナ新規感染者数前週比増加率(7日移動平均)")
             axes.set_ylabel('increase rate [+/-%]')
             plt.xlim(xmin,today)
             plt.ylim(-50,200)
@@ -333,7 +342,7 @@ def make_graph_MHLW_PREF_MAG():
     axes.set_title("COVID-19 from MHLW Open Data"+" ~{0:%Y-%m-%d}".format(today)
                     +"\n newly confirmed weekly increase rate (7days Moving Average)"
                     +"\n By prefecture\n\
-                    厚生労働省オープンデータより新型コロナ新規感染者数増加率(7日移動平均)")
+                    厚生労働省オープンデータより新型コロナ新規感染者数前週比増加率(7日移動平均)")
     axes.set_ylabel('increase rate(増加率) [+/-%]')
     # plt.tight_layout()
     fname='result/covid19_MHLW_Pref_Mag.png'
@@ -352,7 +361,8 @@ def make_graph_MHLW_100k():
     axes = fig.add_subplot(111)
     for pref in pref_list:
         plt.plot(df_list[newly_100k_no].iloc[:,0],df_list[newly_100k_no][pref].rolling(window=7, min_periods=1).mean(),label=pref)
-    plt.title("COVID-19 from MHLW Open Data \n newly confirmed per 100k polulation(7daysMA)")
+    plt.title("COVID-19 from MHLW Open Data \n newly confirmed per 100k polulation(7daysMA)\n\
+                新型コロナ10万人あたりの新規感染者数(北海道,東京,愛知,大阪,福岡,沖縄)")
     plt.xlim([xmin,xmax])
     # plt.yscale("log")
     plt.legend()
@@ -410,7 +420,7 @@ if __name__ == "__main__":
     ymin = 1
     ymax = 1_000_000
 
-    make_graph_MHLW_NCR()
+    # make_graph_MHLW_NCR()
     make_graph_MHLW_ALL()
     make_graph_MHLW_ALL_MAG()
     make_graph_MHLW_PREF()
