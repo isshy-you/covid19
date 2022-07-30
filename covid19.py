@@ -178,16 +178,19 @@ def make_graph_MHLW_ALL_MAG():
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     plt.title('COVID-19 from MHLW Open Data (7days Moving Average)\n\
-               厚生労働省オープンデータより新型コロナ統計情報(倍率)(7日移動平均)')
+               厚生労働省オープンデータより新型コロナ統計情報(増加率%)(7日移動平均)')
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     for ii in [newly_no,inpatient_no,severe_no,death_no]:
     # for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
-        plt.plot(df_mag_list[ii].iloc[:,0],df_mag_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[ii])
+        val = (df_mag_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean()-1)*100
+        plt.plot(df_mag_list[ii].iloc[:,0],val,label=load.MHLW_labels[ii])
         xtmp = np.max([df_mag_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
     # print('from:',xmin,' to:',xmax)
     plt.xlim(xmin,xmax)
-    plt.yscale("log")
+    plt.ylim(-100,200)
+    axes.set_ylabel("[%](+100%:x2,-50%:x1/2)")
+    # plt.yscale("log")
     plt.legend()
     plt.tick_params(axis='x', rotation=90)
     axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
