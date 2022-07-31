@@ -210,7 +210,8 @@ def make_graph_MHLW_ALL_MAG():
 def make_graph_MHLW_PREF():
     # prefecture graph
     xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
-    print('making covid19 graph for each prefecture('+str(xmin)+'~'+str(xmax)+')')
+    # print('making covid19 graph for each prefecture('+str(xmin)+'~'+str(xmax)+')')
+    print('making covid19 graph for each prefecture('+str(xmin)+'~'')')
     for col in range(1,len(df_list[newly_no].columns),1):
         fig = plt.figure(1,figsize=(16,9))
         axes = fig.add_subplot(111)
