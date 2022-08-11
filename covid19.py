@@ -265,6 +265,9 @@ def autolabel(ax,rects):
                         ha='center', va='bottom')
 
 def make_graph_MHLW_PREF_MAG():
+    # mode = 0 # x 倍率
+    mode = 1 # %
+
     # prefecture text
     print('making covid19 magnitude list for each prefecture')
     pref_mag_num=[]
@@ -296,7 +299,8 @@ def make_graph_MHLW_PREF_MAG():
                 else:
                     color.append('red')
                 # val[ii]=(val[ii]-1)*100
-            val = (val-1)*100
+            if mode==1:
+                val = (val-1)*100
             fig = plt.figure(1,figsize=(16,9))
             axes = fig.add_subplot(111)
             rects = axes.bar(df_list[newly_no].iloc[:,0], val, width=1, linewidth=1, color=color,align='center',log=False)
@@ -304,16 +308,23 @@ def make_graph_MHLW_PREF_MAG():
             axes.set_axisbelow(True)
             # axes.grid(visible=True, which="major", color="#ababab", linestyle="-", axis="y")
             # plt.gird()
-            axes.grid(which="major",alpha=0.6)
-            axes.grid(which="minor",alpha=0.3)
+            # axes.grid(which="major",alpha=0.6)
+            # axes.grid(which="minor",alpha=0.3)
             axes.set_title("COVID-19 from MHLW Open Data"
                         +" ~{0:%Y-%m-%d}".format(today)
                         +" \n newly confirmed weekly increase rate \n "
                         +df_list[newly_no].columns[col]+"(7days Moving Average)\n\
                         厚生労働省オープンデータより新型コロナ新規感染者数前週比増加率(7日移動平均)")
-            axes.set_ylabel('increase rate [+/-%]')
+            if mode==1:
+                axes.set_ylabel('前週比増加率 [+/-%](100%:x2.0 , 0%:x1.0, -50%:x0.5')
+            else:
+                axes.set_ylabel('前週比倍率')
+                plt.yscale("log")
             plt.xlim(xmin,today)
-            plt.ylim(-50,200)
+            if mode==1:
+                plt.ylim(-50,200)
+            else:
+                plt.ylim(0.1,10)
             # plt.tight_layout()
             fname='result/covid19_MHLW_'+'{:02d}'.format(col-1)+df_list[newly_no].columns[col]+'_mag'
             fig.savefig(fname, bbox_inches="tight", pad_inches=0.05)
