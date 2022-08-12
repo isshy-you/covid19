@@ -107,31 +107,36 @@ def make_result_text(df_list): #結果テキスト生成
 
 def make_graph_MHLW_NCR():
     # newly_confirmed/pcrtest ratio graph
-    df_tmp=[]
+    tmp_date=[]
+    tmp_newly=[]
+    tmp_pcrtest=[]
     for ii in range (len(df_list[pcrtest_no])):
-        print(df_list[pcrtest_no].at[ii,'日付'])
-        print(df_list[newly_no].iloc[df_list[pcrtest_no].at[ii,'日付'],'ALL'])
-        df_tmp.append(df_list[newly_no].iloc[df_list[pcrtest_no].at[ii,'日付'],'ALL']/df_list[newly_no].iloc[df_list[pcrtest_no].at[ii,'日付'],'ALL'])
-    print(df_tmp)
-    exit()
-    xmax1 = max(df_list[pcrtest_no].iloc[:,0])
-    xmax2 = max(df_list[newly_no].iloc[:,0])
-    xmax = min([xmax1,xmax2])
+        # print(df_list[pcrtest_no].at[ii,'日付'])
+        # print(df_list[newly_no].index)
+        newly = df_list[newly_no].loc[df_list[newly_no]['Date']==df_list[pcrtest_no].at[ii,'日付']]['ALL'].tolist()[0]
+        pcrtest = df_list[pcrtest_no].at[ii,'PCR 検査実施人数(単日)']
+        newly = df_list[newly_no].loc[df_list[newly_no]['Date']==df_list[pcrtest_no].at[ii,'日付']]['ALL'].tolist()[0]
+        pcrtest = df_list[pcrtest_no].at[ii,'PCR 検査実施人数(単日)']
+        tmp_date.append(df_list[pcrtest_no].at[ii,'日付'])
+        tmp_newly.append(newly)
+        tmp_pcrtest.append(pcrtest)
+    df_date = pd.DataFrame(tmp_date)
+    df_tmp = pd.DataFrame(tmp_newly)
+    df_newly = df_tmp.rolling(window=7, min_periods=1).mean()
+    df_tmp = pd.DataFrame(tmp_pcrtest)
+    df_pcrtest = df_tmp.rolling(window=7, min_periods=1).mean()
+    xmax = np.max(tmp_date)
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(7days Moving Average)\n\
-               厚生労働省オープンデータより新型コロナ新規陽性率(7日移動平均)')
-    # plt.plot(df_list[pcrtest_no].iloc[:,0],df_list[pcrtest_no].iloc[:,1],label=load.MHLW_labels[pcrtest_no])
-    # plt.plot(df_list[newly_no].iloc[:,0],df_list[newly_no].iloc[:,1],label=load.MHLW_labels[newly_no])
-    plt.plot(df_list[newly_no].iloc[:,0]
-                ,df_list[newly_no].iloc[:,1].rolling(window=7, min_periods=1).mean()\
-                /df_list[pcrtest_no].iloc[:,1].rolling(window=7, min_periods=1).mean())
+               厚生労働省オープンデータより新型コロナ陽性率(7日移動平均)')
+    plt.plot(df_date,df_newly/df_pcrtest*100,label='陽性率')
+    plt.ylim(0,100)
     plt.xlim(xmin,xmax)
-    # plt.yscale("log")
-    # plt.legend()
+    plt.legend()
     plt.tick_params(axis='x', rotation=90)
-    axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
-    # axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
+    # axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
+    axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
     # axes.xaxis.set_major_locator(mdates.MonthLocator(interval=1)) # by 1 month
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
     plt.grid()
@@ -142,7 +147,8 @@ def make_graph_MHLW_NCR():
     plt.cla()
     plt.clf()
     plt.close()
-    print('covid19 graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_ncr.png')
+    print('covid19 graph : result/covid19_MHLW_ncr.png')
+    # print('covid19 graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_ncr.png')
 
 def make_graph_MHLW_ALL():
     # All Graph
@@ -157,6 +163,7 @@ def make_graph_MHLW_ALL():
         xtmp = np.max([df_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
     plt.xlim(xmin,xmax)
+    plt.ylim([0,10000000])
     plt.yscale("log")
     plt.legend()
     plt.tick_params(axis='x', rotation=90)
@@ -391,10 +398,19 @@ def make_graph_MHLW_100k():
     plt.clf()
     plt.close()
 
+def convert_death_to_daily():
+    # death : convert cumulative to daily
+    for col in range(1,len(df_list[newly_no].columns),1):
+        buf2=df_list[death_no].at[0,df_list[death_no].columns[col]]
+        for ii in range(1,len(df_list[death_no]),1):
+            buf1=df_list[death_no].at[ii,df_list[death_no].columns[col]]
+            df_list[death_no].at[ii,df_list[death_no].columns[col]]=buf1-buf2
+            buf2=buf1
+        df_list[death_no].at[0,df_list[death_no].columns[col]]=0
 
 if __name__ == "__main__":
     # define SWITCH
-    DOWNLOAD = 1
+    DOWNLOAD = 0
 
     matplotlib.rc('font', family='Meiryo')
 
@@ -416,14 +432,7 @@ if __name__ == "__main__":
 
     os.makedirs('result', exist_ok=True)
 
-    # death : convert cumulative to daily
-    for col in range(1,len(df_list[newly_no].columns),1):
-        buf2=df_list[death_no].at[0,df_list[death_no].columns[col]]
-        for ii in range(1,len(df_list[death_no]),1):
-            buf1=df_list[death_no].at[ii,df_list[death_no].columns[col]]
-            df_list[death_no].at[ii,df_list[death_no].columns[col]]=buf1-buf2
-            buf2=buf1
-        df_list[death_no].at[0,df_list[death_no].columns[col]]=0
+    convert_death_to_daily()
 
     #calculate and set xmin,xmax,ymin,ymax
     xmin = datetime.datetime.strptime('2021-07-01', '%Y-%m-%d')
@@ -435,7 +444,7 @@ if __name__ == "__main__":
     ymin = 1
     ymax = 1_000_000
 
-    # make_graph_MHLW_NCR()
+    make_graph_MHLW_NCR()
     make_graph_MHLW_ALL()
     make_graph_MHLW_ALL_MAG()
     make_graph_MHLW_PREF()
