@@ -163,7 +163,7 @@ def make_graph_MHLW_ALL():
         xtmp = np.max([df_list[ii].iloc[:,0]])
         xmax = np.min([xtmp,xmax])
     plt.xlim(xmin,xmax)
-    plt.ylim([0,10000000])
+    # plt.ylim([0,10000000])
     plt.yscale("log")
     plt.legend()
     plt.tick_params(axis='x', rotation=90)
@@ -410,13 +410,13 @@ def convert_death_to_daily():
 
 if __name__ == "__main__":
     # define SWITCH
-    DOWNLOAD = 0
+    DOWNLOAD = True
 
     matplotlib.rc('font', family='Meiryo')
 
     print('download & coping covid19 open data from internet')
     ap=covid19_lib.url_download()
-    if DOWNLOAD==1 : ap.download_MHLW()
+    if DOWNLOAD : ap.download_MHLW()
 
     print('reading covid19 data from database/*.csv')
     load=covid19_lib.csv_load()
