@@ -266,8 +266,8 @@ def autolabel(ax,rects):
                         ha='center', va='bottom')
         else:
             ax.annotate('{0:^+3.0f}'.format(height),
-                        xy=(rect.get_x() + rect.get_width() / 2, -height),
-                        xytext=(0,-3),  # 3 points vertical offset
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0,-12),  # -6 points vertical offset
                         textcoords="offset points",
                         ha='center', va='bottom')
 
