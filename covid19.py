@@ -312,6 +312,8 @@ def make_graph_MHLW_PREF_MAG():
             axes = fig.add_subplot(111)
             rects = axes.bar(df_list[newly_no].iloc[:,0], val, width=1, linewidth=1, color=color,align='center',log=False)
             axes.tick_params(axis='x', rotation=90)
+            axes.xaxis.set_major_formatter(mdates.DateFormatter('%y/%m/%d')) # yy/mm/dd
+            axes.xaxis.set_major_locator(mdates.DayLocator(interval=7)) # by 1 week
             axes.set_axisbelow(True)
             # axes.grid(visible=True, which="major", color="#ababab", linestyle="-", axis="y")
             # plt.gird()
