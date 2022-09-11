@@ -437,7 +437,8 @@ if __name__ == "__main__":
     convert_death_to_daily()
 
     #calculate and set xmin,xmax,ymin,ymax
-    xmin = datetime.datetime.strptime('2021-07-01', '%Y-%m-%d')
+    xmin = datetime.datetime.strptime('2020-02-01', '%Y-%m-%d')
+    # xmin = datetime.datetime.strptime('2021-07-01', '%Y-%m-%d')
     # xmax = datetime.datetime.strptime('2100-01-01', '%Y-%m-%d')
     # for ii,dname in enumerate(load.MHLW_fnames):
     #     xtmp = np.max([df_list[ii].iloc[:,0]])
