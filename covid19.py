@@ -19,6 +19,7 @@ import matplotlib.dates as mdates
 # import tqdm
 import covid19_lib
 # import math
+import platform
 
 def print_line(text,mode,unit,value,p_value): #１ライン表示(未使用)
     line1=text+':'+'{:>0,.0f}'.format(value)+unit
@@ -414,7 +415,11 @@ if __name__ == "__main__":
     # define SWITCH
     DOWNLOAD = True
 
-    matplotlib.rc('font', family='Meiryo')
+    pf = platform.system()
+    if pf=='Windows':
+        matplotlib.rc('font', family='Meiryo')
+    elif pf=='Darwin':
+        matplotlib.rc('font', family='Hiragino Sans' ,weight='bold')
 
     print('download & coping covid19 open data from internet')
     ap=covid19_lib.url_download()
