@@ -129,7 +129,7 @@ def make_graph_MHLW_NCR():
     xmax = min(np.max(tmp_date),xmax_limit)
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
-    plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(~'+str(xmax)+')(7days Moving Average)\n\
+    plt.title('COVID-19 from MHLW Open Data:newly confirmed ratio(~'+"{0:%Y-%m-%d}".format(xmax)+')(7days Moving Average)\n\
                厚生労働省オープンデータより新型コロナ陽性率(7日移動平均)')
     plt.plot(df_date,df_newly/df_pcrtest*100,label='陽性率')
     plt.ylim(0,100)
@@ -149,7 +149,7 @@ def make_graph_MHLW_NCR():
     plt.clf()
     plt.close()
     print('covid19 graph : result/covid19_MHLW_ncr.png')
-    # print('covid19 graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_ncr.png')
+    # print('covid19 graph('+"{0:%y-%m-%d}".format(xmin)+'~'+"{0:%Y-%m-%d}".format(xmax)+') : result/covid19_MHLW_ncr.png')
 
 def make_graph_MHLW_ALL():
     # All Graph
@@ -157,7 +157,7 @@ def make_graph_MHLW_ALL():
     axes = fig.add_subplot(111)
     # print('from:',xmin,' to:',xmax)
     xmax = min(datetime.datetime.strptime('2100-01-01', '%Y-%m-%d'),xmax_limit)
-    plt.title('COVID-19 from MHLW Open Data (~'+str(xmax)+')(7days Moving Average)\n\
+    plt.title('COVID-19 from MHLW Open Data (~'+"{0:%Y-%m-%d}".format(xmax)+')(7days Moving Average)\n\
                厚生労働省オープンデータより新型コロナ統計情報(7日移動平均)')
     for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
         plt.plot(df_list[ii].iloc[:,0],df_list[ii].iloc[:,1].rolling(window=7, min_periods=1).mean(),label=load.MHLW_labels[ii])
@@ -180,13 +180,13 @@ def make_graph_MHLW_ALL():
     plt.cla()
     plt.clf()
     plt.close()
-    print('covid19 graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_All_7dMA.png')
+    print('covid19 graph('+"{0:%y-%m-%d}".format(xmin)+'~'+"{0:%Y-%m-%d}".format(xmax)+') : result/covid19_MHLW_All_7dMA.png')
 
 def make_graph_MHLW_ALL_MAG():
     fig = plt.figure(1,figsize=(16,9))
     axes = fig.add_subplot(111)
     xmax = min(datetime.datetime.strptime('2100-01-01', '%Y-%m-%d'),xmax_limit)
-    plt.title('COVID-19 from MHLW Open Data (~'+str(xmax)+')(7days Moving Average)\n\
+    plt.title('COVID-19 from MHLW Open Data (~'+"{0:%Y-%m-%d}".format(xmax)+')(7days Moving Average)\n\
                厚生労働省オープンデータより新型コロナ統計情報(増加率%)(7日移動平均)')
     for ii in [newly_no,inpatient_no,severe_no,death_no]:
     # for ii in [pcrtest_no,newly_no,inpatient_no,severe_no,death_no]:
@@ -213,19 +213,19 @@ def make_graph_MHLW_ALL_MAG():
     plt.cla()
     plt.clf()
     plt.close()
-    print('making covid19 magnitude graph('+str(xmin)+'~'+str(xmax)+') : result/covid19_MHLW_All_7dMA_mag.png')
+    print('making covid19 magnitude graph('+"{0:%Y-%m-%d}".format(xmin)+'~'+"{0:%Y-%m-%d}".format(xmax)+') : result/covid19_MHLW_All_7dMA_mag.png')
 
 def make_graph_MHLW_PREF():
     # prefecture graph
     xmax = min(datetime.datetime.strptime('2100-01-01', '%Y-%m-%d'),xmax_limit)
-    # print('making covid19 graph for each prefecture('+str(xmin)+'~'+str(xmax)+')')
-    print('making covid19 graph for each prefecture('+str(xmin)+'~'')')
+    # print('making covid19 graph for each prefecture('+"{0:%y-%m-%d}".format(xmin)+'~'+"{0:%Y-%m-%d}".format(xmax)+')')
+    print('making covid19 graph for each prefecture('+"{0:%y-%m-%d}".format(xmin)+'~'')')
     for col in range(1,len(df_list[newly_no].columns),1):
         fig = plt.figure(1,figsize=(16,9))
         axes = fig.add_subplot(111)
         # print('\r','-',df_list[newly_no].columns[col],'           ',end="")
         plt.title(df_list[newly_no].columns[col]
-                +':COVID-19 from MHLW Open Data (~'+str(xmax)+')(7days Moving Average)\n\
+                +':COVID-19 from MHLW Open Data (~'+"{0:%Y-%m-%d}".format(xmax)+')(7days Moving Average)\n\
                     都道府県別（7日移動平均）')
         for jj in [newly_no,inpatient_no,severe_no,death_no]:
             if jj==inpatient_no:
@@ -387,7 +387,7 @@ def make_graph_MHLW_100k():
     axes = fig.add_subplot(111)
     for pref in pref_list:
         plt.plot(df_list[newly_100k_no].iloc[:,0],df_list[newly_100k_no][pref].rolling(window=7, min_periods=1).mean(),label=pref)
-    plt.title('COVID-19 from MHLW Open Data \n newly confirmed per 100k polulation(~'+str(xmax)+')(7daysMA)\n\
+    plt.title('COVID-19 from MHLW Open Data \n newly confirmed per 100k polulation(~'+"{0:%Y-%m-%d}".format(xmax)+')(7daysMA)\n\
                 新型コロナ10万人あたりの新規感染者数(北海道,東京,愛知,大阪,福岡,沖縄)')
     plt.xlim([xmin,xmax])
     # plt.yscale("log")
@@ -415,7 +415,7 @@ def convert_death_to_daily():
 if __name__ == "__main__":
     # define SWITCH
     DOWNLOAD = True
-    DELTA_DAYS = 1 # today() - DELTA_DAYS
+    DELTA_DAYS = 0 # today() - DELTA_DAYS
 
     pf = platform.system()
     if pf=='Windows':
@@ -457,13 +457,13 @@ if __name__ == "__main__":
     ymin = 1
     ymax = 1_000_000
 
+    make_tweet_text(df_list)
+    make_result_text(df_list)
     make_graph_MHLW_NCR()
     make_graph_MHLW_ALL()
     make_graph_MHLW_ALL_MAG()
     make_graph_MHLW_PREF()
     make_graph_MHLW_PREF_MAG()
     make_graph_MHLW_100k()
-    make_tweet_text(df_list)
-    make_result_text(df_list)
 
 
